@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\PembudidayaController;
 
 
 Route::get('/', function () {
@@ -26,6 +27,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
     });
+
+    Route::resource('pembudidaya', PembudidayaController::class);
 });
 
 require __DIR__.'/auth.php';
