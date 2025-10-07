@@ -38,6 +38,7 @@ class Pembudidaya extends Model
         'telp_usaha',
         'email_usaha',
         'skala_usaha',
+        'status_usaha',
         'tahun_mulai_usaha',
         'kontak',
         'latitude',

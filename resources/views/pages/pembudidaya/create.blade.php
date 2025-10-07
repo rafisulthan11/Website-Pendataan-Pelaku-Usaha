@@ -13,6 +13,36 @@
                         @csrf
 
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+                            <h3 class="text-lg font-semibold border-b pb-2 mb-4">Jenis Usaha</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {{-- Jenis Kegiatan Usaha --}}
+                                <div>
+                                    <x-input-label for="jenis_kegiatan_usaha" :value="__('Jenis Kegiatan Usaha*')" />
+                                    <select id="jenis_kegiatan_usaha" name="jenis_kegiatan_usaha" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                                        <option value="">Pilih Jenis Kegiatan</option>
+                                        <option value="Pembenihan" {{ old('jenis_kegiatan_usaha') == 'Pembenihan' ? 'selected' : '' }}>Pembenihan</option>
+                                        <option value="Pembesaran" {{ old('jenis_kegiatan_usaha') == 'Pembesaran' ? 'selected' : '' }}>Pembesaran</option>
+                                        <option value="Tambak" {{ old('jenis_kegiatan_usaha') == 'Tambak' ? 'selected' : '' }}>Tambak</option>
+                                    </select>
+                                    <x-input-error :messages="$errors->get('jenis_kegiatan_usaha')" class="mt-2" />
+                                </div>
+
+                                {{-- Jenis Budidaya --}}
+                                <div>
+                                    <x-input-label for="jenis_budidaya" :value="__('Jenis Budidaya*')" />
+                                    <select id="jenis_budidaya" name="jenis_budidaya" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                                        <option value="">Pilih Jenis Budidaya</option>
+                                        <option value="Kolam" {{ old('jenis_budidaya') == 'Kolam' ? 'selected' : '' }}>Kolam</option>
+                                        <option value="Mina Padi" {{ old('jenis_budidaya') == 'Mina Padi' ? 'selected' : '' }}>Mina Padi</option>
+                                        <option value="Keramba" {{ old('jenis_budidaya') == 'Keramba' ? 'selected' : '' }}>Keramba</option>
+                                        <option value="Tambak" {{ old('jenis_budidaya') == 'Tambak' ? 'selected' : '' }}>Tambak</option>
+                                    </select>
+                                    <x-input-error :messages="$errors->get('jenis_budidaya')" class="mt-2" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
                             <h3 class="text-lg font-semibold border-b pb-2 mb-4">Profil Pemilik</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {{-- Nama Lengkap --}}
@@ -111,34 +141,48 @@
 
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
                             <h3 class="text-lg font-semibold border-b pb-2 mb-4">Profil Usaha</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div>
                                     <x-input-label for="nama_usaha" :value="__('Nama Usaha')" />
                                     <x-text-input id="nama_usaha" class="block mt-1 w-full" type="text" name="nama_usaha" :value="old('nama_usaha')" />
                                     <x-input-error :messages="$errors->get('nama_usaha')" class="mt-2" />
                                 </div>
-                               <div>
-                                    <x-input-label for="jenis_kegiatan_usaha" :value="__('Jenis Kegiatan Usaha*')" />
-                                    <select name="jenis_kegiatan_usaha" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
-                                        <option>Pilih Jenis Kegiatan</option>
-                                        <option value="Pembenihan">Pembenihan</option>
-                                        <option value="Pembesaran">Pembesaran</option>
-                                        <option value="Tambak">Tambak</option>
-                                    </select>
+                                <div>
+                                    <x-input-label for="npwp_usaha" :value="__('NPWP Usaha')" />
+                                    <x-text-input id="npwp_usaha" class="block mt-1 w-full" type="text" name="npwp_usaha" :value="old('npwp_usaha')" />
+                                    <x-input-error :messages="$errors->get('npwp_usaha')" class="mt-2" />
                                 </div>
                                 <div>
-                                    <x-input-label for="jenis_budidaya" :value="__('Jenis Budidaya*')" />
-                                    <select name="jenis_budidaya" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
-                                        <option>Pilih Jenis Budidaya</option>
-                                        <option value="Kolam">Kolam</option>
-                                        <option value="Mina Padi">Mina Padi</option>
-                                        <option value="Keramba">Keramba</option>
-                                        <option value="Tambak">Tambak</option>
+                                    <x-input-label for="telp_usaha" :value="__('No. Telepon Usaha')" />
+                                    <x-text-input id="telp_usaha" class="block mt-1 w-full" type="text" name="telp_usaha" :value="old('telp_usaha')" />
+                                    <x-input-error :messages="$errors->get('telp_usaha')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <x-input-label for="email_usaha" :value="__('Email Usaha')" />
+                                    <x-text-input id="email_usaha" class="block mt-1 w-full" type="email" name="email_usaha" :value="old('email_usaha')" />
+                                    <x-input-error :messages="$errors->get('email_usaha')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <x-input-label for="tahun_mulai_usaha" :value="__('Tahun Mulai Usaha')" />
+                                    <x-text-input id="tahun_mulai_usaha" class="block mt-1 w-full" type="number" name="tahun_mulai_usaha" :value="old('tahun_mulai_usaha')" placeholder="Contoh: 2020" />
+                                    <x-input-error :messages="$errors->get('tahun_mulai_usaha')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <x-input-label for="status_usaha" :value="__('Status Usaha')" />
+                                    <select id="status_usaha" name="status_usaha" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                        <option value="Aktif" {{ old('status_usaha') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                                        <option value="Tidak Aktif" {{ old('status_usaha') == 'Tidak Aktif' ? 'selected' : '' }}>Tidak Aktif</option>
                                     </select>
+                                    <x-input-error :messages="$errors->get('status_usaha')" class="mt-2" />
+                                </div>
+                                <div class="lg:col-span-3">
+                                    <x-input-label for="alamat_usaha" :value="__('Alamat Usaha')" />
+                                    <textarea id="alamat_usaha" name="alamat_usaha" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">{{ old('alamat_usaha') }}</textarea>
+                                    <x-input-error :messages="$errors->get('alamat_usaha')" class="mt-2" />
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('pembudidaya.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</a>
                             <x-primary-button>
