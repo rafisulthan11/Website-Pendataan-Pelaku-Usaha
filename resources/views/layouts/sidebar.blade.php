@@ -80,9 +80,6 @@
                         <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Data Pemasar</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Data Harga Komoditas</a>
-                    </li>
-                    <li>
                         <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Data Harga Ikan Segar</a>
                     </li>
                 </ul>
@@ -121,19 +118,16 @@
                 </button>
                 <ul x-show="open" x-transition.opacity class="ms-8 mt-1 space-y-1">
                     <li>
-                        <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Rekapitulasi Pembudidaya</a>
+                        <a href="{{ route('laporan.rekapitulasi.pembudidaya') }}" class="block px-4 py-2 text-base rounded {{ request()->routeIs('laporan.rekapitulasi.pembudidaya') ? 'bg-blue-100 text-slate-900' : 'text-slate-700 hover:bg-blue-50' }}">Rekapitulasi Pembudidaya</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Rekapitulasi Pengolah</a>
+                        <a href="{{ route('laporan.rekapitulasi.pengolah') }}" class="block px-4 py-2 text-base rounded {{ request()->routeIs('laporan.rekapitulasi.pengolah') ? 'bg-blue-100 text-slate-900' : 'text-slate-700 hover:bg-blue-50' }}">Rekapitulasi Pengolah</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Rekapitulasi Pemasar</a>
+                        <a href="{{ route('laporan.rekapitulasi.pemasar') }}" class="block px-4 py-2 text-base rounded {{ request()->routeIs('laporan.rekapitulasi.pemasar') ? 'bg-blue-100 text-slate-900' : 'text-slate-700 hover:bg-blue-50' }}">Rekapitulasi Pemasar</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Laporan Harga Komoditas</a>
-                    </li>
-                    <li>
-                        <a href="#" class="block px-4 py-2 text-base rounded text-slate-700 hover:bg-blue-50">Laporan Harga Ikan Segar</a>
+                        <a href="{{ route('laporan.harga.ikan.segar') }}" class="block px-4 py-2 text-base rounded {{ request()->routeIs('laporan.harga.ikan.segar') ? 'bg-blue-100 text-slate-900' : 'text-slate-700 hover:bg-blue-50' }}">Laporan Harga Ikan Segar</a>
                     </li>
                 </ul>
             </li>

@@ -36,6 +36,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/peta-lokasi', [PetaLokasiController::class, 'index'])->name('peta-lokasi.index');
     Route::get('/peta-lokasi/pengolah', [PetaLokasiController::class, 'pengolah'])->name('peta-lokasi.pengolah');
     Route::get('/peta-lokasi/pemasar', [PetaLokasiController::class, 'pemasar'])->name('peta-lokasi.pemasar');
+
+    // Laporan - rekapitulasi pembudidaya
+    Route::get('/laporan/rekapitulasi/pembudidaya', [\App\Http\Controllers\LaporanController::class, 'rekapitulasiPembudidaya'])
+        ->name('laporan.rekapitulasi.pembudidaya');
+    Route::get('/laporan/rekapitulasi/pengolah', [\App\Http\Controllers\LaporanController::class, 'rekapitulasiPengolah'])
+        ->name('laporan.rekapitulasi.pengolah');
+    Route::get('/laporan/rekapitulasi/pemasar', [\App\Http\Controllers\LaporanController::class, 'rekapitulasiPemasar'])
+        ->name('laporan.rekapitulasi.pemasar');
+    Route::get('/laporan/harga-ikan-segar', [\App\Http\Controllers\LaporanController::class, 'rekapHargaIkanSegar'])
+        ->name('laporan.harga.ikan.segar');
 });
 
 require __DIR__.'/auth.php';
