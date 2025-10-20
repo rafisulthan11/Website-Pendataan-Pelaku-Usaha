@@ -9,17 +9,19 @@
         <div class="px-4 sm:px-6 lg:px-8">
             <!-- Tab Navigation -->
             <div class="bg-blue-600 text-white rounded-t-xl shadow-lg">
-                <div class="flex justify-center items-center gap-1 p-2">
-                    <a href="{{ route('peta-lokasi.index') }}" class="px-8 py-3 font-semibold text-white hover:bg-blue-700 rounded-lg transition-all whitespace-nowrap">
-                        Peta Interaktif Pembudidaya
-                    </a>
-                    <!-- Tab Aktif: Pengolah -->
-                    <a href="{{ route('peta-lokasi.pengolah') }}" class="px-8 py-3 font-bold bg-white text-blue-700 rounded-lg shadow-md whitespace-nowrap">
-                        Peta Interaktif Pengolah
-                    </a>
-                    <a href="{{ route('peta-lokasi.pemasar') }}" class="px-8 py-3 font-semibold text-white hover:bg-blue-700 rounded-lg transition-all whitespace-nowrap">
-                        Peta Interaktif Pemasar
-                    </a>
+                <div class="px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-wrap justify-center items-center gap-2 p-3">
+                        <a href="{{ route('peta-lokasi.index') }}" class="px-4 py-2 sm:px-8 sm:py-3 font-semibold text-white hover:bg-blue-700 rounded-lg transition-all sm:whitespace-nowrap">
+                            Peta Interaktif Pembudidaya
+                        </a>
+                        <!-- Tab Aktif: Pengolah -->
+                        <a href="{{ route('peta-lokasi.pengolah') }}" class="px-4 py-2 sm:px-8 sm:py-3 font-bold bg-white text-blue-700 rounded-lg shadow-md sm:whitespace-nowrap">
+                            Peta Interaktif Pengolah
+                        </a>
+                        <a href="{{ route('peta-lokasi.pemasar') }}" class="px-4 py-2 sm:px-8 sm:py-3 font-semibold text-white hover:bg-blue-700 rounded-lg transition-all sm:whitespace-nowrap">
+                            Peta Interaktif Pemasar
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -28,7 +30,7 @@
                 <!-- Filter Section -->
                 <div class="mb-4">
                     <h2 class="text-lg font-semibold mb-3">Peta Lokasi Pengolah</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Filter Kecamatan -->
                         <div>
                             <label for="filter-kecamatan" class="block text-sm font-medium text-gray-700 mb-1">
@@ -63,7 +65,7 @@
                 </div>
 
                 <!-- Map Container -->
-                <div id="map" class="w-full h-96 md:h-[500px] rounded-lg shadow-inner border border-gray-300 z-0 relative"></div>
+                <div id="map" class="w-full h-64 sm:h-80 md:h-[500px] rounded-lg shadow-inner border border-gray-300 z-0 relative"></div>
 
                 <!-- Legend / Keterangan -->
                 <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -158,6 +160,16 @@
             map.invalidateSize();
             console.log('Map size invalidated');
         }, 100);
+
+        // Re-invalidate map when viewport changes or sidebar toggles
+        function scheduleInvalidate() {
+            clearTimeout(window.__mapInvalidateTimer);
+            window.__mapInvalidateTimer = setTimeout(function(){ map.invalidateSize(); console.log('Map invalidate on resize/sidebar'); }, 120);
+        }
+
+        window.addEventListener('resize', scheduleInvalidate);
+        window.addEventListener('orientationchange', scheduleInvalidate);
+        window.addEventListener('sincan.sidebarToggled', scheduleInvalidate);
 
         // Custom marker icons untuk berbeda tipe (pembudidaya, pengolah, pemasar)
         const markerIcons = {

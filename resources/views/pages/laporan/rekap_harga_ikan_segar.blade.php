@@ -9,11 +9,11 @@
         <div class="px-4 sm:px-6 lg:px-8">
             <div class="bg-white shadow-md rounded-lg overflow-hidden">
                 <!-- Header bar -->
-                <div class="bg-blue-600 px-6 py-4">
+                <div class="bg-blue-600 px-4 sm:px-6 py-4">
                     <h3 class="text-white text-2xl font-bold">Laporan Harga Ikan Segar</h3>
                 </div>
 
-                <div class="p-6">
+                <div class="p-4 sm:p-6">
                     @include('pages.laporan._rekap_filters', [
                         'kecamatans' => $kecamatans,
                         'komoditas' => $komoditas,
@@ -25,7 +25,7 @@
                     ])
 
                     <!-- Table controls -->
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <div class="flex items-center gap-3">
                             <label class="text-sm">Show</label>
                             <select class="px-3 h-9 w-20 border rounded bg-white text-sm">

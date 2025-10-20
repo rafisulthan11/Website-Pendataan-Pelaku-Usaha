@@ -18,29 +18,29 @@
         @stack('styles')
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100" x-data="{ sidebarShown: true, mobileDrawer: false }" @keydown.window.escape="mobileDrawer=false">
+    <div class="min-h-screen bg-gray-100" x-data="{ sidebarShown: true, mobileDrawer: false }" x-init="$watch('sidebarShown', () => window.dispatchEvent(new CustomEvent('sincan.sidebarToggled'))); $watch('mobileDrawer', () => window.dispatchEvent(new CustomEvent('sincan.sidebarToggled')));" @keydown.window.escape="mobileDrawer=false">
             <!-- Mobile overlay and drawer -->
             <div class="md:hidden">
                 <!-- Overlay -->
-                <div class="fixed inset-0 bg-black/40 transition-opacity" x-show="mobileDrawer" x-transition.opacity @click="mobileDrawer=false"></div>
+                <div class="fixed inset-0 bg-black/40 transition-opacity z-40" x-show="mobileDrawer" x-transition.opacity @click="mobileDrawer=false"></div>
                 <!-- Drawer Panel -->
-                <div class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-200 shadow-lg transform transition-transform" x-show="mobileDrawer" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full">
+                <div class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-200 shadow-lg transform transition-transform z-50" x-show="mobileDrawer" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full">
                     @include('layouts.sidebar')
                 </div>
             </div>
 
             <div class="flex">
                 <!-- Sidebar (desktop) -->
-                <aside class="hidden md:block w-72 bg-white" x-show="sidebarShown" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-ml-72 opacity-0" x-transition:enter-end="ml-0 opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="ml-0 opacity-100" x-transition:leave-end="-ml-72 opacity-0">
+                <aside class="hidden md:block w-72 bg-white z-50" x-show="sidebarShown" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-ml-72 opacity-0" x-transition:enter-end="ml-0 opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="ml-0 opacity-100" x-transition:leave-end="-ml-72 opacity-0">
                     @include('layouts.sidebar')
                 </aside>
 
                 <!-- Main content -->
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0 z-0">
                     <!-- Page Content -->
                     <main>
                         <!-- Header bar: only hamburger, search, notif -->
-                        <div class="bg-white shadow-sm">
+                        <div class="bg-white shadow-sm z-10 relative">
                             <div class="py-3 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <!-- Hamburger (mobile & desktop) -->
