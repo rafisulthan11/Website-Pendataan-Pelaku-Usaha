@@ -63,12 +63,32 @@
                         </div>
                     </div>
 
+                    <!-- User Tracking Info -->
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <strong class="font-medium text-blue-700 block">Dibuat pada:</strong>
+                                <p class="text-gray-700">{{ $pasar->created_at ? $pasar->created_at->translatedFormat('d F Y, H:i') : '-' }}</p>
+                                @if($pasar->createdBy)
+                                    <p class="text-gray-500 text-xs mt-1">oleh: {{ $pasar->createdBy->nama_lengkap }}</p>
+                                @endif
+                            </div>
+                            <div>
+                                <strong class="font-medium text-blue-700 block">Terakhir diubah:</strong>
+                                <p class="text-gray-700">{{ $pasar->updated_at ? $pasar->updated_at->translatedFormat('d F Y, H:i') : '-' }}</p>
+                                @if($pasar->updatedBy)
+                                    <p class="text-gray-500 text-xs mt-1">oleh: {{ $pasar->updatedBy->nama_lengkap }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Buttons -->
-                    <div class="flex gap-3 mt-6">
-                        <a href="{{ route('pasar.edit', $pasar->id_pasar) }}" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-base px-5 py-2.5 text-center">
+                    <div class="flex flex-col-reverse sm:flex-row gap-3 mt-6">
+                        <a href="{{ route('pasar.edit', $pasar->id_pasar) }}" class="w-full sm:w-auto text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-base px-5 py-2.5 text-center">
                             Edit
                         </a>
-                        <a href="{{ route('pasar.index') }}" class="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-base px-5 py-2.5 text-center">
+                        <a href="{{ route('pasar.index') }}" class="w-full sm:w-auto text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-base px-5 py-2.5 text-center">
                             Kembali
                         </a>
                     </div>

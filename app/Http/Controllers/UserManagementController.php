@@ -11,10 +11,34 @@ use Illuminate\Validation\Rules;
 
 class UserManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('role')->latest()->get();
-        return view('pages.users.index', compact('users'));
+        $allowedPerPage = [10, 25, 50, 100];
+        $perPage = in_array((int) $request->per_page, $allowedPerPage, true)
+            ? (int) $request->per_page
+            : 10;
+        $q = trim((string) $request->q);
+
+        $users = User::with('role')
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($subQuery) use ($q) {
+                    $subQuery->where('nama_lengkap', 'like', '%' . $q . '%')
+                        ->orWhere('email', 'like', '%' . $q . '%')
+                        ->orWhere('nip', 'like', '%' . $q . '%')
+                        ->orWhere('status', 'like', '%' . $q . '%')
+                        ->orWhereHas('role', function ($roleQuery) use ($q) {
+                            $roleQuery->where('nama_role', 'like', '%' . $q . '%');
+                        });
+                });
+            })
+            ->latest()
+            ->paginate($perPage)
+            ->appends([
+                'per_page' => $perPage,
+                'q' => $q,
+            ]);
+
+        return view('pages.users.index', compact('users', 'perPage', 'q', 'allowedPerPage'));
     }
 
     public function create()
@@ -27,17 +51,20 @@ class UserManagementController extends Controller
     {
         $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
+            'nip' => ['required', 'digits:18', 'unique:users,nip'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'id_role' => ['required', 'exists:roles,id_role'],
+            'status' => ['required', 'in:aktif,tidak aktif'],
         ]);
 
         User::create([
             'nama_lengkap' => $request->nama_lengkap,
+            'nip' => $request->nip,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'id_role' => $request->id_role,
-            'status' => 'aktif',
+            'status' => $request->status,
         ]);
 
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
@@ -59,16 +86,20 @@ class UserManagementController extends Controller
         // Validasi input
         $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
+            'nip' => ['required', 'digits:18', 'unique:users,nip,'.$user->id_user.',id_user'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id_user.',id_user'],
             'id_role' => ['required', 'exists:roles,id_role'],
+            'status' => ['required', 'in:aktif,tidak aktif'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
         // Update data user
         $user->update([
             'nama_lengkap' => $request->nama_lengkap,
+            'nip' => $request->nip,
             'email' => $request->email,
             'id_role' => $request->id_role,
+            'status' => $request->status,
         ]);
 
         // Jika ada password baru, update passwordnya

@@ -18,6 +18,13 @@ class HargaIkanSegar extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'tahun_pendataan',
+        'status',
+        'verified_by',
+        'verified_at',
+        'catatan_perbaikan',
+        'created_by',
+        'updated_by',
         'id_kecamatan',
         'id_desa',
         'tanggal_input',
@@ -47,5 +54,20 @@ class HargaIkanSegar extends Model
     public function desa()
     {
         return $this->belongsTo(MasterDesa::class, 'id_desa', 'id_desa');
+    }
+
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by', 'id_user');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'id_user');
     }
 }

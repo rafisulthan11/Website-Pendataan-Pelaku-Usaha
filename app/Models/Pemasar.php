@@ -17,6 +17,13 @@ class Pemasar extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'tahun_pendataan',
+        'status',
+        'verified_by',
+        'verified_at',
+        'catatan_perbaikan',
+        'created_by',
+        'updated_by',
         'nik_pemasar',
         'nama_lengkap',
         'jenis_kelamin',
@@ -90,6 +97,13 @@ class Pemasar extends Model
         'jumlah_hari_produksi',
         'distribusi_pemasaran',
         'mesin_peralatan',
+        // Production Fields
+        'biaya_produksi',
+        'harga_jual_produksi',
+        'kapasitas_terpasang',
+        'hasil_produksi_kg',
+        'hasil_produksi_rp',
+        'data_pemasaran',
         // Tenaga Kerja - WNI
         'wni_laki_tetap',
         'wni_laki_tidak_tetap',
@@ -148,5 +162,20 @@ class Pemasar extends Model
     public function desaUsaha()
     {
         return $this->belongsTo(MasterDesa::class, 'id_desa_usaha', 'id_desa');
+    }
+    
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by', 'id_user');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'id_user');
     }
 }

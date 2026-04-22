@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto" />
+                        <x-application-logo class="block h-11 w-auto" />
                     </a>
                 </div>
 
@@ -16,7 +16,7 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @if(auth()->user()->role->nama_role !== 'staff')
+                    @if(auth()->user()->isSuperAdmin())
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.index*')">
                         {{ __('Manajemen Akun') }}
                     </x-nav-link>

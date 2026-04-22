@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-extrabold text-2xl sm:text-3xl text-slate-800 leading-tight">
-            {{ __('Tambah Data Harga Ikan Segar') }}
+            {{ __('Tambah Data Harga Ikan') }}
         </h2>
     </x-slot>
 
@@ -10,18 +10,33 @@
         $stepMap = [
             'id_kecamatan' => 0,
             'id_desa' => 0,
+            'nama_pasar' => 0,
+            'nama_pedagang' => 0,
             'tanggal_input' => 1,
-            'jenis_ikan' => 1,
-            'harga_produsen' => 1,
-            'harga_konsumen' => 1,
-            'satuan' => 1,
+            'ikan' => 1,
         ];
         $initialStep = 0;
         if ($errors->any()) {
             foreach ($errors->keys() as $key) {
-                if (array_key_exists($key, $stepMap)) { $initialStep = $stepMap[$key]; break; }
+                if (str_starts_with($key, 'ikan.')) {
+                    $initialStep = 1;
+                    break;
+                }
+                if (array_key_exists($key, $stepMap)) {
+                    $initialStep = $stepMap[$key];
+                    break;
+                }
             }
         }
+
+        $oldIkanRows = old('ikan', [[
+            'jenis_ikan' => '',
+            'ukuran' => '',
+            'satuan' => '',
+            'harga_produsen' => '',
+            'harga_konsumen' => '',
+            'kuantitas_perminggu' => '',
+        ]]);
     @endphp
 
     <div class="py-6">
@@ -30,9 +45,20 @@
                 <form method="POST" action="{{ route('harga-ikan-segar.store') }}">
                     @csrf
 
+                    @if($errors->any())
+                        <div class="mx-6 mt-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                            <p class="font-semibold mb-2">Data belum tersimpan. Periksa isian berikut:</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <!-- Header -->
                     <div class="bg-blue-600 text-white px-6 py-4">
-                        <h2 class="text-xl font-bold">Formulir Data Harga Ikan Segar</h2>
+                        <h2 class="text-xl font-bold">Formulir Data Harga Ikan</h2>
                     </div>
 
                     <!-- Sub Title -->
@@ -58,6 +84,18 @@
                         <div x-show="step===0" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Profil Pasar</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Tahun Pendataan -->
+                                <div>
+                                    <x-input-label for="tahun_pendataan" :value="__('Tahun Pendataan*')" />
+                                    <select id="tahun_pendataan" name="tahun_pendataan" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                                        @php $currentYear = date('Y'); @endphp
+                                        @foreach(range($currentYear + 5, 2026) as $year)
+                                            <option value="{{ $year }}" {{ old('tahun_pendataan', $currentYear) == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    <x-input-error :messages="$errors->get('tahun_pendataan')" class="mt-2" />
+                                </div>
+
                                 <!-- Tanggal Input -->
                                 <div>
                                     <x-input-label for="tanggal_input" :value="__('Tanggal Input*')" />
@@ -119,13 +157,15 @@
                         </div>
 
                         <!-- Step 1: Detail Ikan -->
-                        <div x-show="step===1" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6" x-data="{ ikanList: [{}] }">
+                        <div x-show="step===1" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6" x-data='{ ikanList: @json($oldIkanRows) }'>
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-lg font-semibold">Detail Ikan</h3>
                                 <button type="button" @click="ikanList.push({})" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition">
                                     + Tambah Baris
                                 </button>
                             </div>
+
+                            <x-input-error :messages="$errors->get('ikan')" class="mb-4" />
                             
                             <template x-for="(ikan, index) in ikanList" :key="index">
                                 <div class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
@@ -138,19 +178,26 @@
                                         <!-- Jenis Ikan -->
                                         <div>
                                             <x-input-label :value="__('Jenis Ikan*')" class="font-semibold" />
-                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="text" x-bind:name="'ikan['+index+'][jenis_ikan]'" required placeholder="Contoh: Lele, Nila, Gurame" />
+                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="text" x-bind:name="'ikan['+index+'][jenis_ikan]'" x-model="ikan.jenis_ikan" required placeholder="Contoh: Lele, Nila, Gurame" />
                                         </div>
 
                                         <!-- Ukuran -->
                                         <div>
                                             <x-input-label :value="__('Ukuran')" class="font-semibold" />
-                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="text" x-bind:name="'ikan['+index+'][ukuran]'" placeholder="Contoh: Kecil, Sedang, Besar" />
+                                            <select class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" x-bind:name="'ikan['+index+'][ukuran]'" x-model="ikan.ukuran">
+                                                <option value="">Pilih Ukuran</option>
+                                                <option value="1-20 cm">1-20 cm</option>
+                                                <option value="21-40 cm">21-40 cm</option>
+                                                <option value="41-60 cm">41-60 cm</option>
+                                                <option value="61-80 cm">61-80 cm</option>
+                                                <option value="81-100 cm">81-100 cm</option>
+                                            </select>
                                         </div>
 
                                         <!-- Satuan -->
                                         <div>
                                             <x-input-label :value="__('Satuan*')" class="font-semibold" />
-                                            <select class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" x-bind:name="'ikan['+index+'][satuan]'" required>
+                                            <select class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" x-bind:name="'ikan['+index+'][satuan]'" x-model="ikan.satuan" required>
                                                 <option value="">Pilih Satuan</option>
                                                 <option value="Kg">Kg (Kilogram)</option>
                                                 <option value="Ekor">Ekor</option>
@@ -162,21 +209,21 @@
                                         <!-- Harga Produsen -->
                                         <div>
                                             <x-input-label :value="__('Harga Produsen (Rp)')" class="font-semibold" />
-                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" x-bind:name="'ikan['+index+'][harga_produsen]'" min="0" step="0.01" placeholder="0" />
+                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" x-bind:name="'ikan['+index+'][harga_produsen]'" x-model="ikan.harga_produsen" min="0" step="0.01" placeholder="0" />
                                             <p class="mt-1 text-xs text-gray-500">Harga jual dari produsen/pembudidaya</p>
                                         </div>
 
                                         <!-- Harga Konsumen -->
                                         <div>
                                             <x-input-label :value="__('Harga Konsumen (Rp)')" class="font-semibold" />
-                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" x-bind:name="'ikan['+index+'][harga_konsumen]'" min="0" step="0.01" placeholder="0" />
+                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" x-bind:name="'ikan['+index+'][harga_konsumen]'" x-model="ikan.harga_konsumen" min="0" step="0.01" placeholder="0" />
                                             <p class="mt-1 text-xs text-gray-500">Harga beli untuk konsumen akhir</p>
                                         </div>
 
                                         <!-- Kuantitas Perminggu -->
                                         <div>
                                             <x-input-label :value="__('Kuantitas Perminggu')" class="font-semibold" />
-                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" x-bind:name="'ikan['+index+'][kuantitas_perminggu]'" min="0" step="0.01" placeholder="0" />
+                                            <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" x-bind:name="'ikan['+index+'][kuantitas_perminggu]'" x-model="ikan.kuantitas_perminggu" min="0" step="0.01" placeholder="0" />
                                             <p class="mt-1 text-xs text-gray-500">Jumlah ikan per minggu</p>
                                         </div>
                                     </div>

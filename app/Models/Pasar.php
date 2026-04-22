@@ -18,8 +18,20 @@ class Pasar extends Model
         'alamat',
         'latitude',
         'longitude',
-        'status'
+        'status',
+        'created_by',
+        'updated_by'
     ];
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'id_user');
+    }
 
     /**
      * Get the kecamatan that owns the pasar.

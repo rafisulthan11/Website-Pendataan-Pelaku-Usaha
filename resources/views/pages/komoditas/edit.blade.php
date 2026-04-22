@@ -33,6 +33,7 @@
                                 <option value="">Pilih Tipe</option>
                                 <option value="Pengolah" {{ old('tipe', $komoditas->tipe) == 'Pengolah' ? 'selected' : '' }}>Pengolah</option>
                                 <option value="Pembudidaya" {{ old('tipe', $komoditas->tipe) == 'Pembudidaya' ? 'selected' : '' }}>Pembudidaya</option>
+                                <option value="Pemasar" {{ old('tipe', $komoditas->tipe) == 'Pemasar' ? 'selected' : '' }}>Pemasar</option>
                             </select>
                             @error('tipe')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -66,12 +67,12 @@
                         </div>
 
                         <!-- Buttons -->
-                        <div class="flex justify-end gap-3 mt-6">
-                            <a href="{{ route('komoditas.index') }}" class="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-base px-5 py-2.5 text-center">
+                        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
+                            <a href="{{ route('komoditas.index') }}" class="w-full sm:w-auto text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-base px-5 py-2.5 text-center">
                                 Batal
                             </a>
-                            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 text-center">
-                                Update
+                            <button type="submit" class="w-full sm:w-auto text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 text-center">
+                                Perbarui
                             </button>
                         </div>
                     </form>

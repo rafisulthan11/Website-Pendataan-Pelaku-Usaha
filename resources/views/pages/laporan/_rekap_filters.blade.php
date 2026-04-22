@@ -13,12 +13,14 @@
             </select>
             @endif
 
+            @if($show_komoditas ?? true)
             <select name="{{ $komoditas_name ?? 'komoditas' }}" class="px-3 h-9 w-full sm:w-auto sm:min-w-[140px] border rounded bg-white text-sm pr-8">
                 <option value="">{{ $komoditas_label ?? 'Semua Komoditas' }}</option>
                 @foreach($komoditas as $kom)
                     <option value="{{ $kom }}" {{ request($komoditas_name ?? 'komoditas') == $kom ? 'selected' : '' }}>{{ $kom }}</option>
                 @endforeach
             </select>
+            @endif
 
             <select name="kategori" class="px-3 h-9 w-full sm:w-auto sm:min-w-[140px] border rounded bg-white text-sm pr-8">
                 <option value="">{{ $kategori_label ?? 'Semua Kategori' }}</option>
@@ -39,8 +41,21 @@
             @if($show_bulan ?? true)
             <select name="bulan" class="px-3 h-9 w-full sm:w-auto sm:min-w-[140px] border rounded bg-white text-sm">
                 <option value="">Semua Bulan</option>
-                @foreach(['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $num => $label)
-                    <option value="{{ $num }}" {{ request('bulan') == $num ? 'selected' : '' }}>{{ $label }}</option>
+                @foreach(['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'] as $bulan)
+                    <option value="{{ $bulan }}" {{ request('bulan') == $bulan ? 'selected' : '' }}>{{ $bulan }}</option>
+                @endforeach
+            </select>
+            @endif
+
+            @if($show_tahun ?? true)
+            <select name="tahun" class="px-3 h-9 w-full sm:w-auto sm:min-w-[140px] border rounded bg-white text-sm">
+                <option value="">Semua Tahun</option>
+                @php
+                    $currentYear = date('Y');
+                    $years = range(2026, $currentYear + 5);
+                @endphp
+                @foreach($years as $year)
+                    <option value="{{ $year }}" {{ request('tahun') == $year ? 'selected' : '' }}>{{ $year }}</option>
                 @endforeach
             </select>
             @endif

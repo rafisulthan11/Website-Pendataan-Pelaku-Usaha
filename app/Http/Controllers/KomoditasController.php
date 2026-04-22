@@ -3,10 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Komoditas;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class KomoditasController extends Controller
 {
+    /**
+     * Create a notification entry.
+     */
+    protected function createNotification($userId, $type, $title, $message, $moduleId = null)
+    {
+        Notification::create([
+            'user_id' => $userId,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'module' => 'komoditas',
+            'module_id' => $moduleId,
+            'url' => $moduleId ? route('komoditas.show', $moduleId) : route('komoditas.index'),
+        ]);
+    }
+
+    /**
+     * Notify admin and super admin except the current actor.
+     */
+    protected function notifySuperAdmins($type, $title, $message, $moduleId = null)
+    {
+        $actorId = auth()->user()?->id_user;
+
+        $superAdmins = User::whereHas('role', function ($q) {
+            $q->whereIn('nama_role', ['admin', 'super admin']);
+        })
+        ->when($actorId, function ($query) use ($actorId) {
+            $query->where('id_user', '!=', $actorId);
+        })
+        ->get();
+
+        foreach ($superAdmins as $superAdmin) {
+            $this->createNotification($superAdmin->id_user, $type, $title, $message, $moduleId);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -50,7 +88,17 @@ class KomoditasController extends Controller
             'status' => 'required|in:aktif,tidak aktif'
         ]);
 
-        Komoditas::create($validated);
+        $komoditas = Komoditas::create(array_merge($validated, [
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id()
+        ]));
+
+        $this->notifySuperAdmins(
+            'create',
+            'Data Komoditas Ditambahkan',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' menambahkan data komoditas: ' . $komoditas->nama_komoditas,
+            $komoditas->id_komoditas
+        );
 
         return redirect()->route('komoditas.index')
             ->with('success', 'Data komoditas berhasil ditambahkan.');
@@ -61,7 +109,7 @@ class KomoditasController extends Controller
      */
     public function show(string $id)
     {
-        $komoditas = Komoditas::findOrFail($id);
+        $komoditas = Komoditas::with(['createdBy', 'updatedBy'])->findOrFail($id);
         return view('pages.komoditas.show', compact('komoditas'));
     }
 
@@ -87,7 +135,16 @@ class KomoditasController extends Controller
         ]);
 
         $komoditas = Komoditas::findOrFail($id);
-        $komoditas->update($validated);
+        $komoditas->update(array_merge($validated, [
+            'updated_by' => auth()->id()
+        ]));
+
+        $this->notifySuperAdmins(
+            'update',
+            'Data Komoditas Diperbarui',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' memperbarui data komoditas: ' . $komoditas->nama_komoditas,
+            $komoditas->id_komoditas
+        );
 
         return redirect()->route('komoditas.index')
             ->with('success', 'Data komoditas berhasil diperbarui.');
@@ -99,7 +156,16 @@ class KomoditasController extends Controller
     public function destroy(string $id)
     {
         $komoditas = Komoditas::findOrFail($id);
+        $namaKomoditas = $komoditas->nama_komoditas;
+        $idKomoditas = $komoditas->id_komoditas;
         $komoditas->delete();
+
+        $this->notifySuperAdmins(
+            'delete',
+            'Data Komoditas Dihapus',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' menghapus data komoditas: ' . $namaKomoditas,
+            $idKomoditas
+        );
 
         return redirect()->route('komoditas.index')
             ->with('success', 'Data komoditas berhasil dihapus.');

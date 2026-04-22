@@ -1,29 +1,92 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Detail Data Pemasar: ') . $pemasar->nama_lengkap }}
+            {{ __("Detail Data Pemasar: ") . (isset($backupData) && $backupData ? $backupData->nama_lengkap : $pemasar->nama_lengkap) }}
         </h2>
     </x-slot>
+
+    @php
+        $displayData = (isset($backupData) && $backupData) ? $backupData : $pemasar;
+        $isReportView = request()->boolean('from_report');
+    @endphp
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    <div class="flex items-center justify-end mb-6 gap-2">
-                         <a href="{{ route('pemasar.index') }}" class="inline-block rounded bg-gray-400 px-4 py-2 text-xs font-medium text-white hover:bg-gray-500">
-                            Kembali
-                        </a>
-                        <a href="{{ route('pemasar.edit', $pemasar->id_pemasar) }}" class="inline-block rounded bg-yellow-500 px-4 py-2 text-xs font-medium text-white hover:bg-yellow-600">
-                            Edit Data Ini
-                        </a>
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            @if(isset($backupData) && $backupData)
+                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg border border-green-300">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="font-medium text-sm">Menampilkan Versi Terakhir Diverifikasi</span>
+                            </div>
+                            @endif
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <a href="{{ route('pemasar.index') }}" class="inline-block rounded bg-gray-400 px-4 py-2 text-xs font-medium text-white hover:bg-gray-500">
+                                Kembali
+                            </a>
+                            @if(!$isReportView)
+                            @if(auth()->user()->role->nama_role === 'staff')
+                            <a href="{{ route('pemasar.edit', $displayData->id_pemasar) }}" class="inline-block rounded bg-yellow-500 px-4 py-2 text-xs font-medium text-white hover:bg-yellow-600">
+                                Edit Data Ini
+                            </a>
+                            @endif
+                            @if(auth()->user()->role->nama_role === 'admin' && $pemasar->status === 'pending')
+                            <form action="{{ route('pemasar.verify', $pemasar->id_pemasar) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="inline-block rounded bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-700">
+                                    Verifikasi
+                                </button>
+                            </form>
+                            <form action="{{ route('pemasar.reject', $pemasar->id_pemasar) }}" method="POST" class="inline form-reject-catatan" data-entity="data pemasar ini">
+                                @csrf
+                                <input type="hidden" name="catatan_perbaikan" value="">
+                                <button type="submit" class="inline-block rounded bg-orange-600 px-4 py-2 text-xs font-medium text-white hover:bg-orange-700">
+                                    Tolak
+                                </button>
+                            </form>
+                            @endif
+                            @if(auth()->user()->isAdminOrSuperAdmin())
+                            <form action="{{ route('pemasar.destroy', $pemasar->id_pemasar) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="inline-block rounded bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700">
+                                    Hapus
+                                </button>
+                            </form>
+                            @endif
+                            @endif
+                        </div>
                     </div>
+
+                    @if(isset($backupData) && $backupData)
+                    <div class="mb-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-yellow-800 mb-1">Informasi Penting</h3>
+                                <p class="text-sm text-yellow-700">
+                                    Data ini sedang dalam proses verifikasi pembaruan. Halaman ini menampilkan <strong>versi terakhir yang telah diverifikasi</strong>. 
+                                    Data yang diperbarui sedang menunggu verifikasi admin.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Jenis Usaha -->
                     <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
                         <h3 class="text-lg font-semibold border-b pb-2 mb-4">Jenis Usaha</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div><strong class="font-medium text-gray-500 block">Jenis Kegiatan Usaha:</strong><p>{{ $pemasar->jenis_kegiatan_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Jenis Kegiatan Usaha:</strong><p>{{ $displayData->jenis_kegiatan_usaha ?? '-' }}</p></div>
                         </div>
                     </div>
 
@@ -31,22 +94,22 @@
                     <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
                         <h3 class="text-lg font-semibold border-b pb-2 mb-4">Profil Pemilik</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                            <div><strong class="font-medium text-gray-500 block">Nama Lengkap:</strong><p>{{ $pemasar->nama_lengkap ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">NIK:</strong><p>{{ $pemasar->nik_pemasar ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Jenis Kelamin:</strong><p>{{ $pemasar->jenis_kelamin ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Tempat Lahir:</strong><p>{{ $pemasar->tempat_lahir ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Tanggal Lahir:</strong><p>{{ $pemasar->tanggal_lahir ? \Carbon\Carbon::parse($pemasar->tanggal_lahir)->translatedFormat('d F Y') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Pendidikan Terakhir:</strong><p>{{ $pemasar->pendidikan_terakhir ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Status Perkawinan:</strong><p>{{ $pemasar->status_perkawinan ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Tahun Mulai Usaha:</strong><p>{{ $pemasar->tahun_mulai_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Aset Pribadi:</strong><p>{{ $pemasar->aset_pribadi ? 'Rp. ' . number_format($pemasar->aset_pribadi, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Jumlah Tanggungan:</strong><p>{{ $pemasar->jumlah_tanggungan ?? '-' }}</p></div>
-                            <div class="lg:col-span-3"><strong class="font-medium text-gray-500 block">Alamat Lengkap:</strong><p>{{ $pemasar->alamat ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Kecamatan:</strong><p>{{ $pemasar->kecamatan->nama_kecamatan ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Desa/Kelurahan:</strong><p>{{ $pemasar->desa->nama_desa ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">No. Telepon/HP:</strong><p>{{ $pemasar->kontak ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Email:</strong><p>{{ $pemasar->email ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">No. NPWP:</strong><p>{{ $pemasar->no_npwp ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Nama Lengkap:</strong><p>{{ $displayData->nama_lengkap ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">NIK:</strong><p>{{ $displayData->nik_pemasar ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Jenis Kelamin:</strong><p>{{ $displayData->jenis_kelamin ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Tempat Lahir:</strong><p>{{ $displayData->tempat_lahir ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Tanggal Lahir:</strong><p>{{ $displayData->tanggal_lahir ? \Carbon\Carbon::parse($displayData->tanggal_lahir)->translatedFormat('d F Y') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Pendidikan Terakhir:</strong><p>{{ $displayData->pendidikan_terakhir ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Status Perkawinan:</strong><p>{{ $displayData->status_perkawinan ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Tahun Mulai Usaha:</strong><p>{{ $displayData->tahun_mulai_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Aset Pribadi:</strong><p>{{ $displayData->aset_pribadi ? 'Rp. ' . number_format($displayData->aset_pribadi, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Jumlah Tanggungan:</strong><p>{{ $displayData->jumlah_tanggungan ?? '-' }}</p></div>
+                            <div class="lg:col-span-3"><strong class="font-medium text-gray-500 block">Alamat Lengkap:</strong><p>{{ $displayData->alamat ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Kecamatan:</strong><p>{{ $displayData->kecamatan->nama_kecamatan ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Desa/Kelurahan:</strong><p>{{ $displayData->desa->nama_desa ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">No. Telepon/HP:</strong><p>{{ $displayData->kontak ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Email:</strong><p>{{ $displayData->email ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">No. NPWP:</strong><p>{{ $displayData->no_npwp ?? '-' }}</p></div>
                         </div>
                     </div>
 
@@ -57,25 +120,25 @@
                         <!-- Informasi Umum -->
                         <h4 class="text-base font-semibold text-slate-700 mb-3">Informasi Umum</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm mb-6">
-                            <div><strong class="font-medium text-gray-500 block">Nama Usaha:</strong><p>{{ $pemasar->nama_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Nama Kelompok:</strong><p>{{ $pemasar->nama_kelompok ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">NPWP Usaha:</strong><p>{{ $pemasar->npwp_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">No. Telepon Usaha:</strong><p>{{ $pemasar->telp_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Email Usaha:</strong><p>{{ $pemasar->email_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Skala Usaha:</strong><p>{{ $pemasar->skala_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Status Usaha:</strong><p>{{ $pemasar->status_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Tahun Mulai Usaha:</strong><p>{{ $pemasar->tahun_mulai_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Komoditas:</strong><p>{{ $pemasar->komoditas ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Nama Usaha:</strong><p>{{ $displayData->nama_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Nama Kelompok:</strong><p>{{ $displayData->nama_kelompok ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">NPWP Usaha:</strong><p>{{ $displayData->npwp_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">No. Telepon Usaha:</strong><p>{{ $displayData->telp_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Email Usaha:</strong><p>{{ $displayData->email_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Skala Usaha:</strong><p>{{ $displayData->skala_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Status Usaha:</strong><p>{{ $displayData->status_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Tahun Mulai Usaha:</strong><p>{{ $displayData->tahun_mulai_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Komoditas:</strong><p>{{ $displayData->komoditas ?? '-' }}</p></div>
                         </div>
 
                         <!-- Lokasi Usaha -->
                         <h4 class="text-base font-semibold text-slate-700 mb-3">Lokasi Usaha</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                            <div><strong class="font-medium text-gray-500 block">Kecamatan:</strong><p>{{ $pemasar->kecamatanUsaha->nama_kecamatan ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Desa/Kelurahan:</strong><p>{{ $pemasar->desaUsaha->nama_desa ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Latitude:</strong><p>{{ $pemasar->latitude ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Longitude:</strong><p>{{ $pemasar->longitude ?? '-' }}</p></div>
-                            <div class="lg:col-span-3"><strong class="font-medium text-gray-500 block">Alamat Lengkap Usaha:</strong><p>{{ $pemasar->alamat_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Kecamatan:</strong><p>{{ $displayData->kecamatanUsaha->nama_kecamatan ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Desa/Kelurahan:</strong><p>{{ $displayData->desaUsaha->nama_desa ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Latitude:</strong><p>{{ $displayData->latitude ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Longitude:</strong><p>{{ $displayData->longitude ?? '-' }}</p></div>
+                            <div class="lg:col-span-3"><strong class="font-medium text-gray-500 block">Alamat Lengkap Usaha:</strong><p>{{ $displayData->alamat_usaha ?? '-' }}</p></div>
                         </div>
                     </div>
 
@@ -83,18 +146,18 @@
                     <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
                         <h3 class="text-lg font-semibold border-b pb-2 mb-4">Izin Usaha</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                            <div><strong class="font-medium text-gray-500 block">NIB:</strong><p>{{ $pemasar->nib ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">NPWP:</strong><p>{{ $pemasar->npwp_izin ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">KUSUKA:</strong><p>{{ $pemasar->kusuka ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Pengesahan MENKUMHAM:</strong><p>{{ $pemasar->pengesahan_menkumham ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">TDU/PHP:</strong><p>{{ $pemasar->tdu_php ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">SPPL:</strong><p>{{ $pemasar->sppl ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">SIUP Perdagangan:</strong><p>{{ $pemasar->siup_perdagangan ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Akta Pendiri Usaha:</strong><p>{{ $pemasar->akta_pendiri_usaha ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">IMB:</strong><p>{{ $pemasar->imb ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">SIUP Perikanan:</strong><p>{{ $pemasar->siup_perikanan ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">UKL/UPL:</strong><p>{{ $pemasar->ukl_upl ?? '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">AMDAL:</strong><p>{{ $pemasar->amdal ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">NIB:</strong><p>{{ $displayData->nib ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">NPWP:</strong><p>{{ $displayData->npwp_izin ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">KUSUKA:</strong><p>{{ $displayData->kusuka ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Pengesahan MENKUMHAM:</strong><p>{{ $displayData->pengesahan_menkumham ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">TDU/PHP:</strong><p>{{ $displayData->tdu_php ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">SPPL:</strong><p>{{ $displayData->sppl ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">SIUP Perdagangan:</strong><p>{{ $displayData->siup_perdagangan ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Akta Pendiri Usaha:</strong><p>{{ $displayData->akta_pendiri_usaha ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">IMB:</strong><p>{{ $displayData->imb ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">SIUP Perikanan:</strong><p>{{ $displayData->siup_perikanan ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">UKL/UPL:</strong><p>{{ $displayData->ukl_upl ?? '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">AMDAL:</strong><p>{{ $displayData->amdal ?? '-' }}</p></div>
                         </div>
                     </div>
 
@@ -103,9 +166,9 @@
                         <h3 class="text-lg font-semibold border-b pb-2 mb-4">Investasi</h3>
                         
                         <!-- Mesin/Peralatan -->
-                        @if($pemasar->mesin_peralatan)
+                        @if($displayData->mesin_peralatan)
                             @php
-                                $mesinPeralatan = json_decode($pemasar->mesin_peralatan, true);
+                                $mesinPeralatan = json_decode($displayData->mesin_peralatan, true);
                             @endphp
                             @if(is_array($mesinPeralatan) && count($mesinPeralatan) > 0)
                                 <h4 class="text-base font-semibold text-slate-700 mb-3">Mesin/Peralatan</h4>
@@ -126,27 +189,27 @@
                         <!-- Nilai Investasi (Modal Tetap / MT) -->
                         <h4 class="text-base font-semibold text-slate-700 mb-3 mt-6">Nilai Investasi (Modal Tetap / MT)</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm mb-6">
-                            <div><strong class="font-medium text-gray-500 block">Tanah:</strong><p>{{ $pemasar->investasi_tanah ? 'Rp. ' . number_format($pemasar->investasi_tanah, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Gedung:</strong><p>{{ $pemasar->investasi_gedung ? 'Rp. ' . number_format($pemasar->investasi_gedung, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Mesin/Peralatan:</strong><p>{{ $pemasar->investasi_mesin_peralatan ? 'Rp. ' . number_format($pemasar->investasi_mesin_peralatan, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Kendaraan:</strong><p>{{ $pemasar->investasi_kendaraan ? 'Rp. ' . number_format($pemasar->investasi_kendaraan, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Lain-lain:</strong><p>{{ $pemasar->investasi_lain_lain ? 'Rp. ' . number_format($pemasar->investasi_lain_lain, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Sub Jumlah:</strong><p>{{ $pemasar->investasi_sub_jumlah ? 'Rp. ' . number_format($pemasar->investasi_sub_jumlah, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Tanah:</strong><p>{{ $displayData->investasi_tanah ? 'Rp. ' . number_format($displayData->investasi_tanah, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Gedung:</strong><p>{{ $displayData->investasi_gedung ? 'Rp. ' . number_format($displayData->investasi_gedung, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Mesin/Peralatan:</strong><p>{{ $displayData->investasi_mesin_peralatan ? 'Rp. ' . number_format($displayData->investasi_mesin_peralatan, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Kendaraan:</strong><p>{{ $displayData->investasi_kendaraan ? 'Rp. ' . number_format($displayData->investasi_kendaraan, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Lain-lain:</strong><p>{{ $displayData->investasi_lain_lain ? 'Rp. ' . number_format($displayData->investasi_lain_lain, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Sub Jumlah:</strong><p>{{ $displayData->investasi_sub_jumlah ? 'Rp. ' . number_format($displayData->investasi_sub_jumlah, 2, ',', '.') : '-' }}</p></div>
                         </div>
 
                         <!-- Nilai Investasi (Modal Kerja / MK) -->
                         <h4 class="text-base font-semibold text-slate-700 mb-3">Nilai Investasi (Modal Kerja / MK)</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
-                            <div><strong class="font-medium text-gray-500 block">1 Bulan:</strong><p>{{ $pemasar->modal_kerja_1_bulan ? 'Rp. ' . number_format($pemasar->modal_kerja_1_bulan, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Sub Jumlah:</strong><p>{{ $pemasar->modal_kerja_sub_jumlah ? 'Rp. ' . number_format($pemasar->modal_kerja_sub_jumlah, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">1 Bulan:</strong><p>{{ $displayData->modal_kerja_1_bulan ? 'Rp. ' . number_format($displayData->modal_kerja_1_bulan, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Sub Jumlah:</strong><p>{{ $displayData->modal_kerja_sub_jumlah ? 'Rp. ' . number_format($displayData->modal_kerja_sub_jumlah, 2, ',', '.') : '-' }}</p></div>
                         </div>
 
                         <!-- Sumber Pembiayaan -->
                         <h4 class="text-base font-semibold text-slate-700 mb-3">Sumber Pembiayaan</h4>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-6">
-                            <div><strong class="font-medium text-gray-500 block">Modal Sendiri:</strong><p>{{ $pemasar->modal_sendiri ? 'Rp. ' . number_format($pemasar->modal_sendiri, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Laba Ditanam:</strong><p>{{ $pemasar->laba_ditanam ? 'Rp. ' . number_format($pemasar->laba_ditanam, 2, ',', '.') : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Modal Pinjaman:</strong><p>{{ $pemasar->modal_pinjam ? 'Rp. ' . number_format($pemasar->modal_pinjam, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Modal Sendiri:</strong><p>{{ $displayData->modal_sendiri ? 'Rp. ' . number_format($displayData->modal_sendiri, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Laba Ditanam:</strong><p>{{ $displayData->laba_ditanam ? 'Rp. ' . number_format($displayData->laba_ditanam, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Modal Pinjaman:</strong><p>{{ $displayData->modal_pinjam ? 'Rp. ' . number_format($displayData->modal_pinjam, 2, ',', '.') : '-' }}</p></div>
                         </div>
 
                         <!-- Sertifikat Lahan -->
@@ -154,9 +217,9 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm mb-6">
                             <div>
                                 <strong class="font-medium text-gray-500 block">Jenis Sertifikat:</strong>
-                                @if($pemasar->sertifikat_lahan)
+                                @if($displayData->sertifikat_lahan)
                                     @php
-                                        $sertifikatLahan = json_decode($pemasar->sertifikat_lahan, true);
+                                        $sertifikatLahan = json_decode($displayData->sertifikat_lahan, true);
                                     @endphp
                                     @if(is_array($sertifikatLahan))
                                         <p>{{ implode(', ', $sertifikatLahan) }}</p>
@@ -167,8 +230,8 @@
                                     <p>-</p>
                                 @endif
                             </div>
-                            <div><strong class="font-medium text-gray-500 block">Luas Lahan:</strong><p>{{ $pemasar->luas_lahan ? $pemasar->luas_lahan . ' m2' : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Nilai:</strong><p>{{ $pemasar->nilai_lahan ? 'Rp. ' . number_format($pemasar->nilai_lahan, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Luas Lahan:</strong><p>{{ $displayData->luas_lahan ? $displayData->luas_lahan . ' m2' : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Nilai:</strong><p>{{ $displayData->nilai_lahan ? 'Rp. ' . number_format($displayData->nilai_lahan, 2, ',', '.') : '-' }}</p></div>
                         </div>
 
                         <!-- Sertifikat Bangunan -->
@@ -176,9 +239,9 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm mb-6">
                             <div>
                                 <strong class="font-medium text-gray-500 block">Jenis Sertifikat:</strong>
-                                @if($pemasar->sertifikat_bangunan)
+                                @if($displayData->sertifikat_bangunan)
                                     @php
-                                        $sertifikatBangunan = json_decode($pemasar->sertifikat_bangunan, true);
+                                        $sertifikatBangunan = json_decode($displayData->sertifikat_bangunan, true);
                                     @endphp
                                     @if(is_array($sertifikatBangunan))
                                         <p>{{ implode(', ', $sertifikatBangunan) }}</p>
@@ -189,23 +252,32 @@
                                     <p>-</p>
                                 @endif
                             </div>
-                            <div><strong class="font-medium text-gray-500 block">Luas Bangunan:</strong><p>{{ $pemasar->luas_bangunan ? $pemasar->luas_bangunan . ' m2' : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Nilai:</strong><p>{{ $pemasar->nilai_bangunan ? 'Rp. ' . number_format($pemasar->nilai_bangunan, 2, ',', '.') : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Luas Bangunan:</strong><p>{{ $displayData->luas_bangunan ? $displayData->luas_bangunan . ' m2' : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Nilai:</strong><p>{{ $displayData->nilai_bangunan ? 'Rp. ' . number_format($displayData->nilai_bangunan, 2, ',', '.') : '-' }}</p></div>
                         </div>
+                    </div>
 
-                        <!-- Produksi -->
-                        <h4 class="text-base font-semibold text-slate-700 mb-3">Kapasitas & Produksi</h4>
+                    <!-- Pemasaran -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <h3 class="text-lg font-semibold border-b pb-2 mb-4">Pemasaran</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
-                            <div><strong class="font-medium text-gray-500 block">Kapasitas Terpasang Setahun:</strong><p>{{ $pemasar->kapasitas_terpasang_setahun ? $pemasar->kapasitas_terpasang_setahun . ' Kg' : '-' }}</p></div>
-                            <div><strong class="font-medium text-gray-500 block">Jumlah Hari Produksi/bulan:</strong><p>{{ $pemasar->jumlah_hari_produksi ? $pemasar->jumlah_hari_produksi . ' hari' : '-' }}</p></div>
+                            <div><strong class="font-medium text-gray-500 block">Kapasitas Terpasang:</strong><p>{{ $displayData->kapasitas_terpasang ? $displayData->kapasitas_terpasang . ' Kg' : '-' }}</p></div>
                             <div>
-                                <strong class="font-medium text-gray-500 block">Bulan Produksi:</strong>
-                                @if($pemasar->bulan_produksi)
+                                <strong class="font-medium text-gray-500 block">Hasil Pemasaran <span class="text-xs text-gray-400">(Otomatis Terhitung)</span>:</strong>
+                                <p>{{ $displayData->hasil_produksi_kg ? $displayData->hasil_produksi_kg . ' Kg' : '-' }}{{ $displayData->hasil_produksi_rp ? ' | Rp. ' . number_format($displayData->hasil_produksi_rp, 2, ',', '.') : '' }}</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <strong class="font-medium text-gray-500 block">Bulan Pemasaran:</strong>
+                                @if($displayData->bulan_produksi)
                                     @php
-                                        $bulanProduksi = json_decode($pemasar->bulan_produksi, true);
+                                        $bulanPemasaranList = json_decode($displayData->bulan_produksi, true);
                                     @endphp
-                                    @if(is_array($bulanProduksi))
-                                        <p>Bulan: {{ implode(', ', $bulanProduksi) }}</p>
+                                    @if(is_array($bulanPemasaranList) && count($bulanPemasaranList) > 0)
+                                        <div class="flex flex-wrap gap-2 mt-2">
+                                            @foreach($bulanPemasaranList as $bulan)
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">{{ $bulan }}</span>
+                                            @endforeach
+                                        </div>
                                     @else
                                         <p>-</p>
                                     @endif
@@ -213,7 +285,46 @@
                                     <p>-</p>
                                 @endif
                             </div>
-                            <div><strong class="font-medium text-gray-500 block">Distribusi Pemasaran:</strong><p>{{ $pemasar->distribusi_pemasaran ?? '-' }}</p></div>
+                        </div>
+
+                        <!-- PEMASARAN Table -->
+                        @if($displayData->data_pemasaran)
+                            @php
+                                $dataPemasaran = json_decode($displayData->data_pemasaran, true);
+                            @endphp
+                            @if(is_array($dataPemasaran) && count($dataPemasaran) > 0)
+                                <h4 class="text-base font-semibold text-slate-700 mb-3">Data Pemasaran</h4>
+                                <div class="overflow-x-auto mb-6">
+                                    <table class="w-full border-collapse border border-gray-300 text-sm">
+                                        <thead class="bg-gray-100">
+                                            <tr>
+                                                <th class="border border-gray-300 px-3 py-2 text-left">Jenis Ikan</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left">Asal Ikan</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left">Jumlah / Volume Ikan</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left">Harga Beli /kg</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left">Harga Jual/kg</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($dataPemasaran as $row)
+                                                <tr>
+                                                    <td class="border border-gray-300 px-3 py-2">{{ $row['jenis_ikan'] ?? '-' }}</td>
+                                                    <td class="border border-gray-300 px-3 py-2">{{ $row['asal_ikan'] ?? '-' }}</td>
+                                                    <td class="border border-gray-300 px-3 py-2 text-right">{{ isset($row['jumlah_volume']) && $row['jumlah_volume'] ? number_format($row['jumlah_volume'], 2, ',', '.') : '-' }}</td>
+                                                    <td class="border border-gray-300 px-3 py-2 text-right">{{ isset($row['harga_beli']) && $row['harga_beli'] ? 'Rp. ' . number_format($row['harga_beli'], 2, ',', '.') : '-' }}</td>
+                                                    <td class="border border-gray-300 px-3 py-2 text-right">{{ isset($row['harga_jual']) && $row['harga_jual'] ? 'Rp. ' . number_format($row['harga_jual'], 2, ',', '.') : '-' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+                        @endif
+
+                        <!-- Distribusi / Pemasaran -->
+                        <div class="text-sm">
+                            <strong class="font-medium text-gray-500 block mb-2">Distribusi / Pemasaran:</strong>
+                            <p class="whitespace-pre-wrap">{{ $displayData->distribusi_pemasaran ?? '-' }}</p>
                         </div>
                     </div>
 
@@ -228,17 +339,17 @@
                                 <div class="mb-4">
                                     <h5 class="font-medium text-slate-700 mb-2 text-sm">Laki-laki</h5>
                                     <div class="grid grid-cols-3 gap-2 text-sm">
-                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $pemasar->wni_laki_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $pemasar->wni_laki_tidak_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $pemasar->wni_laki_keluarga ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $displayData->wni_laki_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $displayData->wni_laki_tidak_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $displayData->wni_laki_keluarga ?? '0' }}</div>
                                     </div>
                                 </div>
                                 <div>
                                     <h5 class="font-medium text-slate-700 mb-2 text-sm">Perempuan</h5>
                                     <div class="grid grid-cols-3 gap-2 text-sm">
-                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $pemasar->wni_perempuan_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $pemasar->wni_perempuan_tidak_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $pemasar->wni_perempuan_keluarga ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $displayData->wni_perempuan_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $displayData->wni_perempuan_tidak_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $displayData->wni_perempuan_keluarga ?? '0' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -249,17 +360,17 @@
                                 <div class="mb-4">
                                     <h5 class="font-medium text-slate-700 mb-2 text-sm">Laki-laki</h5>
                                     <div class="grid grid-cols-3 gap-2 text-sm">
-                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $pemasar->wna_laki_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $pemasar->wna_laki_tidak_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $pemasar->wna_laki_keluarga ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $displayData->wna_laki_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $displayData->wna_laki_tidak_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $displayData->wna_laki_keluarga ?? '0' }}</div>
                                     </div>
                                 </div>
                                 <div>
                                     <h5 class="font-medium text-slate-700 mb-2 text-sm">Perempuan</h5>
                                     <div class="grid grid-cols-3 gap-2 text-sm">
-                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $pemasar->wna_perempuan_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $pemasar->wna_perempuan_tidak_tetap ?? '0' }}</div>
-                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $pemasar->wna_perempuan_keluarga ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tetap:</strong> {{ $displayData->wna_perempuan_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Tidak Tetap:</strong> {{ $displayData->wna_perempuan_tidak_tetap ?? '0' }}</div>
+                                        <div><strong class="text-gray-600">Keluarga:</strong> {{ $displayData->wna_perempuan_keluarga ?? '0' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -286,13 +397,13 @@
                             @foreach($lampiran as $key => $label)
                                 <div class="border rounded-lg p-3 bg-white">
                                     <strong class="font-medium text-gray-700 block mb-2 text-sm">{{ $label }}</strong>
-                                    @if($pemasar->$key)
+                                    @if($displayData->$key)
                                         @php
-                                            $extension = pathinfo($pemasar->$key, PATHINFO_EXTENSION);
+                                            $extension = pathinfo($displayData->$key, PATHINFO_EXTENSION);
                                             $isPdf = strtolower($extension) === 'pdf';
-                                            $filePath = str_starts_with($pemasar->$key, 'storage/') 
-                                                ? substr($pemasar->$key, 8) 
-                                                : $pemasar->$key;
+                                            $filePath = str_starts_with($displayData->$key, 'storage/') 
+                                                ? substr($displayData->$key, 8) 
+                                                : $displayData->$key;
                                         @endphp
                                         @if($isPdf)
                                             <a href="{{ asset('storage/' . $filePath) }}" target="_blank" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800">
@@ -318,11 +429,25 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                                 <strong class="font-medium text-blue-700 block">Dibuat pada:</strong>
-                                <p class="text-gray-700">{{ $pemasar->created_at ? $pemasar->created_at->translatedFormat('d F Y, H:i') : '-' }}</p>
+                                <p class="text-gray-700">{{ $displayData->created_at ? $displayData->created_at->translatedFormat('d F Y, H:i') : '-' }}</p>
+                                @if($displayData->createdBy)
+                                    <div class="mt-2">
+                                        <strong class="font-medium text-blue-700 block">Dibuat oleh:</strong>
+                                        <p class="text-gray-700">{{ $displayData->createdBy->nama_lengkap }}</p>
+                                        <p class="text-gray-500 text-xs">NIP: {{ $displayData->createdBy->nip ?? '-' }}</p>
+                                    </div>
+                                @endif
                             </div>
                             <div>
                                 <strong class="font-medium text-blue-700 block">Terakhir diubah:</strong>
-                                <p class="text-gray-700">{{ $pemasar->updated_at ? $pemasar->updated_at->translatedFormat('d F Y, H:i') : '-' }}</p>
+                                <p class="text-gray-700">{{ $displayData->updated_at ? $displayData->updated_at->translatedFormat('d F Y, H:i') : '-' }}</p>
+                                @if($displayData->updatedBy)
+                                    <div class="mt-2">
+                                        <strong class="font-medium text-blue-700 block">Terakhir diedit oleh:</strong>
+                                        <p class="text-gray-700">{{ $displayData->updatedBy->nama_lengkap }}</p>
+                                        <p class="text-gray-500 text-xs">NIP: {{ $displayData->updatedBy->nip ?? '-' }}</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

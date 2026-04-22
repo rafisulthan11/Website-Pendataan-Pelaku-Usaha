@@ -1,12 +1,12 @@
     <x-app-layout>
         <x-slot name="header">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Manajemen Akun') }}
+            <h2 class="font-extrabold text-2xl sm:text-3xl text-slate-800 leading-tight">
+                {{ __('Akun & Keamanan') }}
             </h2>
         </x-slot>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="py-6">
+            <div class="px-4 sm:px-6 lg:px-8">
                 <div class="rounded-lg overflow-hidden shadow-md">
                     <!-- Blue Header Container -->
                     <div class="bg-blue-600 text-white px-6 py-4">
@@ -23,39 +23,68 @@
                             </div>
                             
                             <!-- Show entries, Search and Add Button -->
-                            <form method="GET" action="{{ route('users.index') }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                                <form method="GET" action="{{ route('users.index') }}" class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
                                 <div class="flex items-center gap-2 text-sm text-slate-700">
-                                    <span>Show</span>
+                                    <span>Tampilkan</span>
                                     <select name="per_page" class="border border-gray-300 rounded px-4 py-1.5 pr-8 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white" onchange="this.form.submit()">
-                                        <option value="10" selected>10</option>
-                                        <option value="25">25</option>
-                                        <option value="50">50</option>
-                                        <option value="100">100</option>
+                                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                                     </select>
-                                    <span>entries</span>
+                                    <span>data</span>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="flex items-center gap-2 text-sm text-slate-700">
-                                        <label>Search:</label>
-                                        <div class="relative">
-                                            <input type="text" name="q" value="" placeholder="Cari" class="border border-gray-300 rounded-lg pl-10 pr-4 py-1.5 text-sm placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64" />
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+                                        <div class="flex items-center gap-2 text-sm text-slate-700 w-full sm:w-auto">
+                                        <label>Cari:</label>
+                                            <div class="relative w-full sm:w-auto">
+                                                    <input type="text" name="q" value="{{ $q ?? request('q') }}" placeholder="Cari nama, email, NIP" class="border border-gray-300 rounded-lg pl-10 pr-4 py-1.5 text-sm placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64" />
                                             <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17.25 10.5a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z"/></svg>
                                         </div>
                                     </div>
-                                    <a href="{{ route('users.create') }}" class="inline-flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-medium text-sm rounded-lg px-4 py-1.5 shadow whitespace-nowrap">
+                                        <a href="{{ route('users.create') }}" class="inline-flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-medium text-sm rounded-lg px-4 py-1.5 shadow whitespace-nowrap w-full sm:w-auto">
                                         <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                                         Tambah User Baru
                                     </a>
                                 </div>
                             </form>
 
-                        <div class="overflow-x-auto">
+                            <div class="md:hidden space-y-3 mb-4">
+                                @forelse ($users as $user)
+                                <div class="rounded-lg border border-slate-200 p-4 bg-white shadow-sm">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="font-semibold text-slate-800">{{ $user->nama_lengkap }}</p>
+                                            <p class="text-xs text-slate-500">{{ $user->email }}</p>
+                                        </div>
+                                        <span class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-700">{{ $user->status }}</span>
+                                    </div>
+                                    <div class="mt-2 text-sm text-slate-700 space-y-1">
+                                        <p><span class="font-medium">NIP:</span> {{ $user->nip ?? '-' }}</p>
+                                        <p><span class="font-medium">Role:</span> {{ $user->role->nama_role ?? '-' }}</p>
+                                    </div>
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        <a href="{{ route('users.edit', $user->id_user) }}" class="inline-block rounded bg-yellow-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-yellow-600">Edit</a>
+                                        <form action="{{ route('users.destroy', $user->id_user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-block rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700">Hapus</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                @empty
+                                <div class="rounded-lg border border-slate-200 p-4 text-center text-slate-500">Tidak ada data user.</div>
+                                @endforelse
+                            </div>
+
+                            <div class="hidden md:block overflow-x-auto">
                             <div class="rounded-md border border-slate-300 overflow-hidden">
                                 <table class="min-w-full text-base">
                                     <thead class="bg-slate-100 text-slate-800">
                                         <tr>
                                             <th class="px-4 py-3 text-left font-semibold text-[15px]">No</th>
                                             <th class="px-4 py-3 text-left font-semibold text-[15px]">Nama Lengkap</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-[15px]">NIP</th>
                                             <th class="px-4 py-3 text-left font-semibold text-[15px]">Email</th>
                                             <th class="px-4 py-3 text-left font-semibold text-[15px]">Role</th>
                                             <th class="px-4 py-3 text-left font-semibold text-[15px]">Status</th>
@@ -66,17 +95,26 @@
                                     <tbody>
                                     @forelse ($users as $user)
                                     <tr class="border-t border-slate-200">
-                                        <td class="px-4 py-3 align-top text-slate-700">{{ $loop->iteration }}</td>
+                                        <td class="px-4 py-3 align-top text-slate-700">{{ ($users->firstItem() ?? 0) + $loop->index }}</td>
                                         <td class="px-4 py-3 align-top text-slate-700">{{ $user->nama_lengkap }}</td>
+                                        <td class="px-4 py-3 align-top text-slate-700">{{ $user->nip ?? '-' }}</td>
                                         <td class="px-4 py-3 align-top text-slate-700">{{ $user->email }}</td>
                                         <td class="px-4 py-3 align-top text-slate-700">
                                             {{-- Cek role untuk styling --}}
-                                            @if($user->role->nama_role == 'admin')
+                                            @if($user->role->nama_role == 'super admin')
                                                 <span class="inline-block whitespace-nowrap rounded-[0.27rem] bg-red-100 px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none text-red-700">
                                                     {{ $user->role->nama_role }}
                                                 </span>
-                                            @else
+                                            @elseif($user->role->nama_role == 'admin')
+                                                <span class="inline-block whitespace-nowrap rounded-[0.27rem] bg-yellow-100 px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none text-yellow-700">
+                                                    {{ $user->role->nama_role }}
+                                                </span>
+                                            @elseif($user->role->nama_role == 'staff')
                                                 <span class="inline-block whitespace-nowrap rounded-[0.27rem] bg-blue-100 px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none text-blue-700">
+                                                    {{ $user->role->nama_role }}
+                                                </span>
+                                            @else
+                                                <span class="inline-block whitespace-nowrap rounded-[0.27rem] bg-gray-100 px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none text-gray-700">
                                                     {{ $user->role->nama_role }}
                                                 </span>
                                             @endif
@@ -93,7 +131,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="inline-block rounded bg-red-600 px-2 py-2 text-xs font-medium text-white hover:bg-red-700">
-                                                        Delete
+                                                        Hapus
                                                     </button>
                                                 </form>
                                             </div>
@@ -101,7 +139,7 @@
                                     </tr>
                                     @empty
                                     <tr class="border-t border-slate-200">
-                                        <td colspan="6" class="px-4 py-3 text-center text-slate-500">
+                                        <td colspan="7" class="px-4 py-3 text-center text-slate-500">
                                             Tidak ada data user.
                                         </td>
                                     </tr>
@@ -111,6 +149,10 @@
                         </div>
                         </div>
 
+                        </div>
+
+                        <div class="mt-4">
+                            {{ $users->onEachSide(1)->links('components.pagination.custom') }}
                         </div>
                     </div>
                 </div>

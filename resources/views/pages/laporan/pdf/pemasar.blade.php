@@ -32,6 +32,7 @@
         <div class="section-title">JENIS USAHA</div>
         <table class="info-table">
             <tr><td>Jenis Kegiatan Usaha</td><td>: {{ $pemasar->jenis_kegiatan_usaha ?? '-' }}</td></tr>
+            <tr><td>Tahun Pendataan</td><td>: {{ $pemasar->tahun_pendataan ?? '-' }}</td></tr>
         </table>
     </div>
 
@@ -210,10 +211,17 @@
         </table>
     </div>
 
-    <!-- Kapasitas & Produksi -->
+    <!-- Produksi -->
     <div class="section">
-        <div class="section-title">KAPASITAS & PRODUKSI</div>
+        <div class="section-title">PRODUKSI</div>
+        
+        <div class="subsection-title">Informasi Produksi</div>
         <table class="info-table">
+            <tr><td>Biaya Produksi</td><td>: {{ $pemasar->biaya_produksi ? 'Rp. ' . number_format($pemasar->biaya_produksi, 2, ',', '.') : '-' }}</td></tr>
+            <tr><td>Harga Jual Produksi</td><td>: {{ $pemasar->harga_jual_produksi ? 'Rp. ' . number_format($pemasar->harga_jual_produksi, 2, ',', '.') : '-' }}</td></tr>
+            <tr><td>Kapasitas Terpasang</td><td>: {{ $pemasar->kapasitas_terpasang ? $pemasar->kapasitas_terpasang . ' Kg' : '-' }}</td></tr>
+            <tr><td>Hasil Produksi (Kg)</td><td>: {{ $pemasar->hasil_produksi_kg ?? '-' }}</td></tr>
+            <tr><td>Hasil Produksi (Rp)</td><td>: {{ $pemasar->hasil_produksi_rp ? 'Rp. ' . number_format($pemasar->hasil_produksi_rp, 2, ',', '.') : '-' }}</td></tr>
             <tr><td>Kapasitas Terpasang Setahun</td><td>: {{ $pemasar->kapasitas_terpasang_setahun ? $pemasar->kapasitas_terpasang_setahun . ' Kg' : '-' }}</td></tr>
             <tr><td>Jumlah Hari Produksi/bulan</td><td>: {{ $pemasar->jumlah_hari_produksi ? $pemasar->jumlah_hari_produksi . ' hari' : '-' }}</td></tr>
             <tr>
@@ -235,6 +243,40 @@
             </tr>
             <tr><td>Distribusi Pemasaran</td><td>: {{ $pemasar->distribusi_pemasaran ?? '-' }}</td></tr>
         </table>
+
+        <!-- Data Pemasaran -->
+        @if($pemasar->data_pemasaran)
+            @php
+                $dataPemasaran = is_string($pemasar->data_pemasaran) ? json_decode($pemasar->data_pemasaran, true) : $pemasar->data_pemasaran;
+            @endphp
+            @if(is_array($dataPemasaran) && count($dataPemasaran) > 0)
+                <div class="subsection-title">Data Pemasaran</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Jenis Ikan</th>
+                            <th>Kebutuhan Min (Kg)</th>
+                            <th>Kebutuhan Max (Kg)</th>
+                            <th>Asal Ikan</th>
+                            <th>Harga Beli/Kg</th>
+                            <th>Harga Jual/Kg</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($dataPemasaran as $row)
+                        <tr>
+                            <td>{{ $row['jenis_ikan'] ?? '-' }}</td>
+                            <td>{{ isset($row['kebutuhan_min']) ? number_format($row['kebutuhan_min'], 2, ',', '.') : '-' }}</td>
+                            <td>{{ isset($row['kebutuhan_max']) ? number_format($row['kebutuhan_max'], 2, ',', '.') : '-' }}</td>
+                            <td>{{ $row['asal_ikan'] ?? '-' }}</td>
+                            <td>{{ isset($row['harga_beli']) ? 'Rp. ' . number_format($row['harga_beli'], 0, ',', '.') : '-' }}</td>
+                            <td>{{ isset($row['harga_jual']) ? 'Rp. ' . number_format($row['harga_jual'], 0, ',', '.') : '-' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        @endif
     </div>
 
     <!-- Data Aset & Kendaraan -->

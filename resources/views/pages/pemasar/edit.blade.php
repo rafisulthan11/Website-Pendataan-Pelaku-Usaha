@@ -23,7 +23,7 @@
 
     <div class="py-6">
         <div class="px-4 sm:px-6 lg:px-8">
-            <div x-data="{ step: {{ $initialStep }}, maxStep: 6 }" class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+            <div x-data="{ step: {{ $initialStep }}, maxStep: 7 }" class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
                 <!-- Header -->
                 <div class="bg-blue-600 text-white px-6 py-4">
                     <h2 class="text-xl font-bold">Data Pemasar</h2>
@@ -37,7 +37,7 @@
                 <!-- Tabs -->
                 <div class="px-6 py-3">
                     <div class="flex flex-wrap gap-2">
-                        @php $tabs = ['Jenis Usaha','Profil Pemilik','Izin Usaha','Profil Usaha','Investasi','Tenaga Kerja','Lampiran']; @endphp
+                        @php $tabs = ['Jenis Usaha','Profil Pemilik','Izin Usaha','Profil Usaha','Investasi','Pemasaran','Tenaga Kerja','Lampiran']; @endphp
                         @foreach($tabs as $i => $tab)
                             <button type="button" @click="step={{ $i }}" :class="step==={{ $i }} ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-gray-300'" class="px-4 py-2 rounded text-sm font-medium hover:bg-blue-50 transition">
                                 {{ $tab }}
@@ -56,6 +56,22 @@
                         <div x-show="step===0" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Jenis Usaha</h3>
                             <div class="space-y-6">
+                                <!-- Tahun Pendataan -->
+                                <div>
+                                    <x-input-label for="tahun_pendataan" :value="__('Tahun Pendataan*')" />
+                                    <select name="tahun_pendataan" id="tahun_pendataan" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                                        @php
+                                            $currentYear = date('Y');
+                                            $years = range(2026, $currentYear + 5);
+                                        @endphp
+                                        @foreach($years as $year)
+                                            <option value="{{ $year }}" {{ old('tahun_pendataan', $pemasar->tahun_pendataan ?? $currentYear) == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Pilih tahun periode pendataan</p>
+                                    <x-input-error :messages="$errors->get('tahun_pendataan')" class="mt-2" />
+                                </div>
+
                                 <!-- Jenis Kegiatan Usaha -->
                                 <div>
                                     <x-input-label for="jenis_kegiatan_usaha" :value="__('Jenis Kegiatan Usaha')" />
@@ -127,9 +143,9 @@
                                     <x-input-error :messages="$errors->get('status_perkawinan')" class="mt-2" />
                                 </div>
                                 <div>
-                                    <x-input-label for="tahun_mulai_usaha" :value="__('Tahun Mulai Usaha')" />
-                                    <x-text-input id="tahun_mulai_usaha" class="block mt-1 w-full" type="number" name="tahun_mulai_usaha" :value="old('tahun_mulai_usaha', $pemasar->tahun_mulai_usaha)" min="1900" max="2099" />
-                                    <x-input-error :messages="$errors->get('tahun_mulai_usaha')" class="mt-2" />
+                                    <x-input-label for="kontak" :value="__('No. Telepon / HP*')" />
+                                    <x-text-input id="kontak" class="block mt-1 w-full" type="text" name="kontak" :value="old('kontak', $pemasar->kontak)" required />
+                                    <x-input-error :messages="$errors->get('kontak')" class="mt-2" />
                                 </div>
                                 <div>
                                     <x-input-label for="aset_pribadi" :value="__('Aset Pribadi')" />
@@ -165,11 +181,6 @@
                                         <option value="">Loading...</option>
                                     </select>
                                     <x-input-error :messages="$errors->get('id_desa')" class="mt-2" />
-                                </div>
-                                <div>
-                                    <x-input-label for="kontak" :value="__('No. Telepon / HP*')" />
-                                    <x-text-input id="kontak" class="block mt-1 w-full" type="text" name="kontak" :value="old('kontak', $pemasar->kontak)" required />
-                                    <x-input-error :messages="$errors->get('kontak')" class="mt-2" />
                                 </div>
                                 <div>
                                     <x-input-label for="email" :value="__('Email')" />
@@ -586,47 +597,210 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Kapasitas Terpasang Setahun -->
-                            <div class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-                                <h4 class="font-semibold text-slate-800 mb-4">Kapasitas Terpasang Setahun</h4>
-                                <div class="flex items-center gap-2">
-                                    <input class="block w-full md:w-1/3 border-gray-300 rounded-md shadow-sm" type="number" name="kapasitas_terpasang_setahun" value="{{ old('kapasitas_terpasang_setahun', $pemasar->kapasitas_terpasang_setahun ?? '') }}" step="0.01" />
-                                    <span class="text-sm text-gray-600">Kg</span>
-                                </div>
-                            </div>
-
-                            <!-- Bulan Produksi -->
-                            <div class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-                                <h4 class="font-semibold text-slate-800 mb-4">Bulan Produksi <span class="text-xs text-gray-500">(Centang yang dipilih)</span></h4>
-                                <div class="grid grid-cols-6 md:grid-cols-12 gap-3">
-                                    @for ($i = 1; $i <= 12; $i++)
-                                        <label class="flex items-center">
-                                            <input type="checkbox" name="bulan_produksi[]" value="{{ $i }}" class="rounded border-gray-300 text-blue-600" {{ is_array(old('bulan_produksi', json_decode($pemasar->bulan_produksi ?? '[]'))) && in_array($i, old('bulan_produksi', json_decode($pemasar->bulan_produksi ?? '[]'))) ? 'checked' : '' }}>
-                                            <span class="ml-2 text-sm">{{ $i }}</span>
-                                        </label>
-                                    @endfor
-                                </div>
-                            </div>
-
-                            <!-- Jumlah Hari Produksi/bulan -->
-                            <div class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-                                <h4 class="font-semibold text-slate-800 mb-4">Jumlah Hari Produksi/bulan</h4>
-                                <div class="flex items-center gap-2">
-                                    <input class="block w-full md:w-1/3 border-gray-300 rounded-md shadow-sm" type="number" name="jumlah_hari_produksi" value="{{ old('jumlah_hari_produksi', $pemasar->jumlah_hari_produksi ?? '') }}" min="0" />
-                                    <span class="text-sm text-gray-600">hari</span>
-                                </div>
-                            </div>
-
-                            <!-- Distribusi Pemasaran -->
-                            <div class="p-4 bg-white rounded-lg border border-gray-200">
-                                <h4 class="font-semibold text-slate-800 mb-4">Distribusi Pemasaran</h4>
-                                <textarea class="block w-full border-gray-300 rounded-md shadow-sm" name="distribusi_pemasaran" rows="3">{{ old('distribusi_pemasaran', $pemasar->distribusi_pemasaran ?? '') }}</textarea>
-                            </div>
                         </div>
 
-                        <!-- Step 5: Tenaga Kerja -->
-                        <div x-show="step===5" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                        <!-- Step 5: Pemasaran -->
+                        @php
+                            $existingData = old('data_pemasaran', json_decode($pemasar->data_pemasaran ?? '[]', true));
+                            if (empty($existingData)) {
+                                $existingData = [['jenis_ikan' => '', 'jumlah_volume' => '', 'asal_ikan' => '', 'harga_beli' => '', 'harga_jual' => '']];
+                            }
+                        @endphp
+                        <div x-show="step===5" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6" x-data="{ 
+                            sections: [{
+                                id: 1,
+                                rows: {{ json_encode(array_values($existingData)) }},
+                                nextRowId: {{ count($existingData) + 1 }}
+                            }],
+                            nextSectionId: 2,
+                            addSection() {
+                                this.sections.push({
+                                    id: this.nextSectionId++,
+                                    rows: [{ id: 1, jenis_ikan: '', jumlah_volume: '', asal_ikan: '', harga_beli: '', harga_jual: '' }],
+                                    nextRowId: 2
+                                });
+                            },
+                            removeSection(sectionId) {
+                                if (this.sections.length > 1) {
+                                    this.sections = this.sections.filter(section => section.id !== sectionId);
+                                }
+                            },
+                            addRow(sectionIndex) {
+                                this.sections[sectionIndex].rows.push({ 
+                                    id: this.sections[sectionIndex].nextRowId++, 
+                                    jenis_ikan: '', 
+                                    jumlah_volume: '', 
+                                    asal_ikan: '', 
+                                    harga_beli: '', 
+                                    harga_jual: '' 
+                                });
+                            },
+                            removeRow(sectionIndex, rowIndex) {
+                                if (this.sections[sectionIndex].rows.length > 1) {
+                                    this.sections[sectionIndex].rows.splice(rowIndex, 1);
+                                }
+                            },
+                            calculateHasilPemasaran(sectionIndex) {
+                                const section = this.sections[sectionIndex];
+                                let totalKg = 0;
+                                let totalRp = 0;
+                                
+                                section.rows.forEach(row => {
+                                    const volume = parseFloat(row.jumlah_volume) || 0;
+                                    const hargaJual = parseFloat(row.harga_jual) || 0;
+                                    
+                                    totalKg += volume;
+                                    totalRp += (volume * hargaJual);
+                                });
+                                
+                                return {
+                                    kg: totalKg.toFixed(2),
+                                    rp: totalRp.toFixed(2)
+                                };
+                            }
+                        }">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Pemasaran</h3>
+                                <button type="button" @click="addSection()" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Tambah Pemasaran
+                                </button>
+                            </div>
+
+                            <!-- Loop through sections -->
+                            <template x-for="(section, sectionIndex) in sections" :key="section.id">
+                                <div class="mb-6 p-4 bg-white rounded-lg border-2 border-blue-200 relative">
+                                    <!-- Remove Section Button -->
+                                    <div class="flex justify-between items-center mb-4" x-show="sections.length > 1">
+                                        <span class="text-sm font-semibold text-blue-600" x-text="'Data Pemasaran #' + (sectionIndex + 1)"></span>
+                                        <button type="button" @click="removeSection(section.id)" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                            Hapus Data Pemasaran
+                                        </button>
+                                    </div>
+
+                                    <!-- Basic Production Info -->
+                                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <!-- Kapasitas Terpasang -->
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                                    Kapasitas Terpasang
+                                                </label>
+                                                <div class="flex items-center gap-2">
+                                                    <input class="block w-full border-gray-300 rounded-md shadow-sm" type="number" :name="'pemasaran[' + sectionIndex + '][kapasitas_terpasang]'" :value="sectionIndex === 0 ? '{{ old('kapasitas_terpasang', $pemasar->kapasitas_terpasang ?? '') }}' : ''" step="0.01" />
+                                                    <span class="text-sm text-gray-600 whitespace-nowrap">Kg</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Hasil Pemasaran -->
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                                    Hasil Pemasaran <span class="text-xs text-gray-500">(Otomatis Terhitung)</span>
+                                                </label>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex-1">
+                                                        <input class="block w-full border-gray-300 rounded-md shadow-sm bg-gray-100" type="number" :name="'pemasaran[' + sectionIndex + '][hasil_produksi_kg]'" :value="calculateHasilPemasaran(sectionIndex).kg" step="0.01" readonly />
+                                                    </div>
+                                                    <span class="text-sm text-gray-600 whitespace-nowrap">Kg</span>
+                                                    <div class="relative flex-1">
+                                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Rp.</span>
+                                                        <input class="block w-full pl-12 border-gray-300 rounded-md shadow-sm bg-gray-100" type="number" :name="'pemasaran[' + sectionIndex + '][hasil_produksi_rp]'" :value="calculateHasilPemasaran(sectionIndex).rp" step="0.01" readonly />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Bulan Pemasaran -->
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-slate-700 mb-3">
+                                                Bulan Pemasaran <span class="text-xs text-gray-500">(Pilih bulan pemasaran)</span>
+                                            </label>
+                                            @php
+                                                $bulanProduksiData = old('bulan_produksi', json_decode($pemasar->bulan_produksi ?? '[]', true));
+                                            @endphp
+                                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                                @foreach(['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $index => $bulan)
+                                                    <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                        <input type="checkbox" :name="'pemasaran[' + sectionIndex + '][bulan_produksi][]'" value="{{ $bulan }}" class="rounded border-gray-300 text-blue-600" x-bind:checked="sectionIndex === 0 && {{ is_array($bulanProduksiData) && in_array($bulan, $bulanProduksiData) ? 'true' : 'false' }}">
+                                                        <span class="ml-2 text-sm">{{ $bulan }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PEMASARAN Table -->
+                                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h4 class="font-semibold text-slate-800">TABEL PEMASARAN</h4>
+                                            <button type="button" @click="addRow(sectionIndex)" class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
+                                                + Tambah Baris
+                                            </button>
+                                        </div>
+
+                                        <div class="overflow-x-auto">
+                                            <table class="w-full border-collapse border border-gray-300">
+                                                <thead>
+                                                    <tr class="bg-gray-100">
+                                                        <th class="border border-gray-300 px-3 py-2 text-sm font-semibold text-left">Jenis Ikan</th>
+                                                        <th class="border border-gray-300 px-3 py-2 text-sm font-semibold text-left">Asal Ikan</th>
+                                                        <th class="border border-gray-300 px-3 py-2 text-sm font-semibold text-left">Jumlah / Volume Ikan</th>
+                                                        <th class="border border-gray-300 px-3 py-2 text-sm font-semibold text-left">Harga beli /kg</th>
+                                                        <th class="border border-gray-300 px-3 py-2 text-sm font-semibold text-left">Harga jual/kg</th>
+                                                        <th class="border border-gray-300 px-3 py-2 text-sm font-semibold text-center">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template x-for="(row, rowIndex) in section.rows" :key="rowIndex">
+                                                        <tr>
+                                                            <td class="border border-gray-300 px-2 py-2">
+                                                                <input type="text" :name="'pemasaran[' + sectionIndex + '][data_pemasaran][' + rowIndex + '][jenis_ikan]'" x-model="row.jenis_ikan" class="w-full border-gray-300 rounded text-sm" />
+                                                            </td>
+                                                            <td class="border border-gray-300 px-2 py-2">
+                                                                <input type="text" :name="'pemasaran[' + sectionIndex + '][data_pemasaran][' + rowIndex + '][asal_ikan]'" x-model="row.asal_ikan" class="w-full border-gray-300 rounded text-sm" />
+                                                            </td>
+                                                            <td class="border border-gray-300 px-2 py-2">
+                                                                <input type="number" :name="'pemasaran[' + sectionIndex + '][data_pemasaran][' + rowIndex + '][jumlah_volume]'" x-model="row.jumlah_volume" class="w-full border-gray-300 rounded text-sm" step="0.01" />
+                                                            </td>
+                                                            <td class="border border-gray-300 px-2 py-2">
+                                                                <div class="flex items-center gap-1">
+                                                                    <span class="text-sm">Rp.</span>
+                                                                    <input type="number" :name="'pemasaran[' + sectionIndex + '][data_pemasaran][' + rowIndex + '][harga_beli]'" x-model="row.harga_beli" class="w-full border-gray-300 rounded text-sm" step="0.01" />
+                                                                </div>
+                                                            </td>
+                                                            <td class="border border-gray-300 px-2 py-2">
+                                                                <div class="flex items-center gap-1">
+                                                                    <span class="text-sm">Rp.</span>
+                                                                    <input type="number" :name="'pemasaran[' + sectionIndex + '][data_pemasaran][' + rowIndex + '][harga_jual]'" x-model="row.harga_jual" class="w-full border-gray-300 rounded text-sm" step="0.01" />
+                                                                </div>
+                                                            </td>
+                                                            <td class="border border-gray-300 px-2 py-2 text-center">
+                                                                <button type="button" @click="removeRow(sectionIndex, rowIndex)" class="text-red-600 hover:text-red-800 text-sm" x-show="section.rows.length > 1">
+                                                                    Hapus
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Distribusi / Pemasaran -->
+                                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                                            Distribusi / Pemasaran
+                                        </label>
+                                        <textarea class="block w-full border-gray-300 rounded-md shadow-sm" :name="'pemasaran[' + sectionIndex + '][distribusi_pemasaran]'" rows="3" x-text="sectionIndex === 0 ? '{{ old('distribusi_pemasaran', $pemasar->distribusi_pemasaran ?? '') }}' : ''"></textarea>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Step 6: Tenaga Kerja -->
+                        <div x-show="step===6" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Tenaga Kerja</h3>
                             
                             <!-- WNI Section -->
@@ -716,8 +890,8 @@
                             </div>
                         </div>
 
-                        <!-- Step 6: Lampiran -->
-                        <div x-show="step===6" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                        <!-- Step 7: Lampiran -->
+                        <div x-show="step===7" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Lampiran</h3>
                             <p class="text-slate-600 mb-6">Unggah dokumentasi berikut (format: JPG, PNG, PDF. Maksimal 2MB per file)</p>
                             
@@ -803,17 +977,17 @@
                     </div>
 
                     <!-- Navigation -->
-                    <div class="px-6 pb-6 flex justify-between items-center border-t pt-6">
+                    <div class="px-6 pb-6 flex items-center justify-between border-t border-gray-200 pt-4">
                         <a href="{{ route('pemasar.index') }}" class="text-base text-slate-700 hover:text-slate-900 hover:underline">Batal</a>
-                        <div class="flex gap-3">
-                            <button type="button" @click="if(step > 0) step--" x-show="step > 0" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="if(step > 0) step--" x-show="step > 0" class="px-5 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-slate-700 text-sm font-medium transition">
                                 Sebelumnya
                             </button>
-                            <button type="button" @click="if(step < maxStep) step++" x-show="step < maxStep" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                            <button type="button" @click="if(step < maxStep) step++" x-show="step < maxStep" class="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
                                 Berikutnya
                             </button>
-                            <button type="submit" x-show="step === maxStep" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                                {{ __('Update Data') }}
+                            <button type="submit" x-show="step === maxStep" class="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
+                                {{ __('Perbarui Data') }}
                             </button>
                         </div>
                     </div>

@@ -11,6 +11,7 @@ class PembudidayaKolam extends Model
     
     protected $fillable = [
         'id_pembudidaya',
+        'product_index',
         'jenis_kolam',
         'ukuran',
         'jumlah',

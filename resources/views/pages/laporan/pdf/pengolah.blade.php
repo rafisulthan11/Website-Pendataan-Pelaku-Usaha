@@ -32,6 +32,7 @@
         <div class="section-title">JENIS USAHA</div>
         <table class="info-table">
             <tr><td>Jenis Kegiatan Usaha</td><td>: {{ $pengolah->jenis_kegiatan_usaha ?? '-' }}</td></tr>
+            <tr><td>Tahun Pendataan</td><td>: {{ $pengolah->tahun_pendataan ?? '-' }}</td></tr>
         </table>
     </div>
 
@@ -46,6 +47,7 @@
             <tr><td>Pendidikan Terakhir</td><td>: {{ $pengolah->pendidikan_terakhir ?? '-' }}</td></tr>
             <tr><td>Status Perkawinan</td><td>: {{ $pengolah->status_perkawinan ?? '-' }}</td></tr>
             <tr><td>Jumlah Tanggungan</td><td>: {{ $pengolah->jumlah_tanggungan ?? '-' }}</td></tr>
+            <tr><td>Aset Pribadi</td><td>: {{ $pengolah->aset_pribadi ? 'Rp. ' . number_format($pengolah->aset_pribadi, 0, ',', '.') : '-' }}</td></tr>
             <tr><td>Alamat Lengkap</td><td>: {{ $pengolah->alamat ?? '-' }}</td></tr>
             <tr><td>Kecamatan</td><td>: {{ $pengolah->kecamatan->nama_kecamatan ?? '-' }}</td></tr>
             <tr><td>Desa/Kelurahan</td><td>: {{ $pengolah->desa->nama_desa ?? '-' }}</td></tr>
@@ -63,6 +65,7 @@
         <table class="info-table">
             <tr><td>Nama Usaha</td><td>: {{ $pengolah->nama_usaha ?? '-' }}</td></tr>
             <tr><td>Nama Kelompok</td><td>: {{ $pengolah->nama_kelompok ?? '-' }}</td></tr>
+            <tr><td>Komoditas</td><td>: {{ $pengolah->komoditas ?? '-' }}</td></tr>
             <tr><td>Skala Usaha</td><td>: {{ $pengolah->skala_usaha ?? '-' }}</td></tr>
             <tr><td>Status Usaha</td><td>: {{ $pengolah->status_usaha ?? '-' }}</td></tr>
             <tr><td>Tahun Mulai Usaha</td><td>: {{ $pengolah->tahun_mulai_usaha ?? '-' }}</td></tr>
@@ -74,6 +77,25 @@
             <tr><td>Desa Usaha</td><td>: {{ $pengolah->desaUsaha->nama_desa ?? '-' }}</td></tr>
             <tr><td>Alamat Lengkap Usaha</td><td>: {{ $pengolah->alamat_usaha ?? '-' }}</td></tr>
             <tr><td>Koordinat (Lat, Long)</td><td>: {{ $pengolah->latitude ?? '-' }}, {{ $pengolah->longitude ?? '-' }}</td></tr>
+        </table>
+    </div>
+
+    <!-- Izin Usaha -->
+    <div class="section">
+        <div class="section-title">IZIN USAHA</div>
+        <table class="info-table">
+            <tr><td>NIB</td><td>: {{ $pengolah->nib ?? '-' }}</td></tr>
+            <tr><td>NPWP Usaha</td><td>: {{ $pengolah->npwp_usaha ?? '-' }}</td></tr>
+            <tr><td>KUSUKA</td><td>: {{ $pengolah->kusuka ?? '-' }}</td></tr>
+            <tr><td>Pengesahan MENKUMHAM</td><td>: {{ $pengolah->pengesahan_menkumham ?? '-' }}</td></tr>
+            <tr><td>TDU-PHP</td><td>: {{ $pengolah->tdu_php ?? '-' }}</td></tr>
+            <tr><td>AKTA Pendirian Usaha</td><td>: {{ $pengolah->akta_pendirian_usaha ?? '-' }}</td></tr>
+            <tr><td>IMB</td><td>: {{ $pengolah->imb ?? '-' }}</td></tr>
+            <tr><td>SIUP Perikanan</td><td>: {{ $pengolah->siup_perikanan ?? '-' }}</td></tr>
+            <tr><td>SIUP Perdagangan</td><td>: {{ $pengolah->siup_perdagangan ?? '-' }}</td></tr>
+            <tr><td>SPPL</td><td>: {{ $pengolah->sppl ?? '-' }}</td></tr>
+            <tr><td>UKL-UPL</td><td>: {{ $pengolah->ukl_upl ?? '-' }}</td></tr>
+            <tr><td>AMDAL</td><td>: {{ $pengolah->amdal ?? '-' }}</td></tr>
         </table>
     </div>
 
@@ -91,7 +113,7 @@
                     <tr><td>Jumlah Hari Produksi/Bulan</td><td>: {{ $produksi['jumlah_hari_produksi'] ?? '-' }} hari</td></tr>
                     @if(isset($produksi['bulan_produksi']) && is_array($produksi['bulan_produksi']) && count($produksi['bulan_produksi']) > 0)
                         @php $bulanNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; @endphp
-                        <tr><td>Bulan Produksi</td><td>: @foreach($produksi['bulan_produksi'] as $bulan){{ $bulanNames[$bulan - 1] ?? $bulan }}@if(!$loop->last), @endif @endforeach</td></tr>
+                        <tr><td>Bulan Produksi</td><td>: @foreach($produksi['bulan_produksi'] as $bulan){{ is_numeric($bulan) ? ($bulanNames[$bulan - 1] ?? $bulan) : $bulan }}@if(!$loop->last), @endif @endforeach</td></tr>
                     @endif
                     @if(isset($produksi['sertifikat_lahan']) && is_array($produksi['sertifikat_lahan']) && count($produksi['sertifikat_lahan']) > 0)
                         <tr><td>Sertifikat Lahan</td><td>: {{ implode(', ', $produksi['sertifikat_lahan']) }}</td></tr>

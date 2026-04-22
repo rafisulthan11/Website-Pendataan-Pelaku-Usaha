@@ -15,10 +15,10 @@
                         Harga Komoditas
                     </a>
                     <a href="{{ route('grafik.harga.ikan.segar') }}" class="px-3 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-semibold {{ request()->routeIs('grafik.harga.ikan.segar') ? 'bg-white text-blue-700 rounded-lg shadow-md' : 'text-white hover:bg-blue-700 rounded-lg transition-all' }}">
-                        Harga Ikan Segar
+                        Harga Ikan
                     </a>
-                    <a href="{{ route('grafik.pendataan.wilayah') }}" class="px-3 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-semibold {{ request()->routeIs('grafik.pendataan.wilayah') ? 'bg-white text-blue-700 rounded-lg shadow-md' : 'text-white hover:bg-blue-700 rounded-lg transition-all' }}">
-                        Jumlah Pendataan Wilayah
+                    <a href="{{ route('grafik.produksi.ikan') }}" class="px-3 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-semibold {{ request()->routeIs('grafik.produksi.ikan') ? 'bg-white text-blue-700 rounded-lg shadow-md' : 'text-white hover:bg-blue-700 rounded-lg transition-all' }}">
+                        Produksi Ikan
                     </a>
                 </div>
             </div>

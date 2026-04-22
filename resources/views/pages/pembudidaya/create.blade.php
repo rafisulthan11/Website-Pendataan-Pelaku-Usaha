@@ -56,13 +56,28 @@
                         <div x-show="step===0" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Jenis Usaha</h3>
                             <div class="space-y-6">
+                                <!-- Tahun Pendataan -->
+                                <div>
+                                    <x-input-label for="tahun_pendataan" :value="__('Tahun Pendataan*')" />
+                                    <select name="tahun_pendataan" id="tahun_pendataan" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                                        @php
+                                            $currentYear = date('Y');
+                                            $years = range(2026, $currentYear + 5);
+                                        @endphp
+                                        @foreach($years as $year)
+                                            <option value="{{ $year }}" {{ old('tahun_pendataan', $currentYear) == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Pilih tahun periode pendataan</p>
+                                    <x-input-error :messages="$errors->get('tahun_pendataan')" class="mt-2" />
+                                </div>
+
                                 <!-- Jenis Kegiatan Usaha -->
                                 <div>
                                     <x-input-label for="jenis_kegiatan_usaha" :value="__('Jenis Kegiatan Usaha')" />
                                     <select name="jenis_kegiatan_usaha" id="jenis_kegiatan_usaha" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
                                         <option value="">Pilih Jenis Kegiatan Usaha</option>
-                                        <option value="Pembenihan" {{ old('jenis_kegiatan_usaha')=='Pembenihan' ? 'selected' : '' }}>Pembenihan</option>
-                                        <option value="Pembenihan/Pembenih" {{ old('jenis_kegiatan_usaha')=='Pembenihan/Pembenih' ? 'selected' : '' }}>Pembenihan/Pembenih</option>
+                                        <option value="Pembenihan/Pembibitan" {{ old('jenis_kegiatan_usaha')=='Pembenihan/Pembibitan' ? 'selected' : '' }}>Pembenihan/Pembibitan</option>
                                         <option value="Pembesaran" {{ old('jenis_kegiatan_usaha')=='Pembesaran' ? 'selected' : '' }}>Pembesaran</option>
                                         <option value="Tambak" {{ old('jenis_kegiatan_usaha')=='Tambak' ? 'selected' : '' }}>Tambak</option>
                                     </select>
@@ -163,28 +178,58 @@
                         <!-- Step 2: Izin Usaha -->
                         <div x-show="step===2" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Izin Usaha</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                @php
-                                    $izinFields = [
-                                        'nib' => 'NIB',
-                                        'npwp' => 'NPWP',
-                                        'kusuka' => 'KUSUKA',
-                                        'pengesahan_menkumham' => 'Pengesahan MENKUMHAM',
-                                        'cbib' => 'CBIB',
-                                        'skai' => 'SKAI (Surat Keterangan Asal Ikan)',
-                                        'surat_ijin_pembudidayaan_ikan' => 'Surat Ijin Pembudidayaan Ikan',
-                                        'akta_pendirian_usaha' => 'AKTA PENDIRIAN USAHA',
-                                        'imb' => 'IMB',
-                                        'sup_perikanan' => 'SUP Perikanan',
-                                        'sup_perdagangan' => 'SUP Perdagangan',
-                                    ];
-                                @endphp
-                                @foreach($izinFields as $name => $label)
-                                    <div class="md:col-span-2">
-                                        <x-input-label :for="'izin_' . $name" :value="$label" />
-                                        <x-text-input :id="'izin_' . $name" class="block mt-1 w-full" type="text" :name="'izin['.$name.']'" :value="old('izin.'.$name)" />
-                                    </div>
-                                @endforeach
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Baris 1 -->
+                                <div>
+                                    <x-input-label for="izin_nib" value="NIB" />
+                                    <x-text-input id="izin_nib" class="block mt-1 w-full" type="text" name="izin[nib]" :value="old('izin.nib')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="izin_npwp" value="NPWP" />
+                                    <x-text-input id="izin_npwp" class="block mt-1 w-full" type="text" name="izin[npwp]" :value="old('izin.npwp')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="izin_kusuka" value="KUSUKA" />
+                                    <x-text-input id="izin_kusuka" class="block mt-1 w-full" type="text" name="izin[kusuka]" :value="old('izin.kusuka')" />
+                                </div>
+                                
+                                <!-- Baris 2 -->
+                                <div>
+                                    <x-input-label for="izin_pengesahan_menkumham" value="Pengesahan MENKUMHAM" />
+                                    <x-text-input id="izin_pengesahan_menkumham" class="block mt-1 w-full" type="text" name="izin[pengesahan_menkumham]" :value="old('izin.pengesahan_menkumham')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="izin_cbib" value="CBIB" />
+                                    <x-text-input id="izin_cbib" class="block mt-1 w-full" type="text" name="izin[cbib]" :value="old('izin.cbib')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="izin_skai" value="SKAI (Surat Keterangan Asal Ikan)" />
+                                    <x-text-input id="izin_skai" class="block mt-1 w-full" type="text" name="izin[skai]" :value="old('izin.skai')" />
+                                </div>
+                                
+                                <!-- Baris 3 -->
+                                <div>
+                                    <x-input-label for="izin_surat_ijin_pembudidayaan_ikan" value="Surat Ijin Pembudidayaan Ikan" />
+                                    <x-text-input id="izin_surat_ijin_pembudidayaan_ikan" class="block mt-1 w-full" type="text" name="izin[surat_ijin_pembudidayaan_ikan]" :value="old('izin.surat_ijin_pembudidayaan_ikan')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="izin_akta_pendirian_usaha" value="AKTA Pendirian Usaha" />
+                                    <x-text-input id="izin_akta_pendirian_usaha" class="block mt-1 w-full" type="text" name="izin[akta_pendirian_usaha]" :value="old('izin.akta_pendirian_usaha')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="izin_imb" value="IMB" />
+                                    <x-text-input id="izin_imb" class="block mt-1 w-full" type="text" name="izin[imb]" :value="old('izin.imb')" />
+                                </div>
+                                
+                                <!-- Baris 4 -->
+                                <div>
+                                    <x-input-label for="izin_sup_perikanan" value="SUP Perikanan" />
+                                    <x-text-input id="izin_sup_perikanan" class="block mt-1 w-full" type="text" name="izin[sup_perikanan]" :value="old('izin.sup_perikanan')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="izin_sup_perdagangan" value="SUP Perdagangan" />
+                                    <x-text-input id="izin_sup_perdagangan" class="block mt-1 w-full" type="text" name="izin[sup_perdagangan]" :value="old('izin.sup_perdagangan')" />
+                                </div>
                             </div>
                         </div>
 
@@ -361,134 +406,195 @@
                         </div>
 
                         <!-- Step 5: Produksi -->
-                        <div x-show="step===5" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6" x-data="{ kolams: [], ikans: [] }">
-                            <h3 class="text-lg font-semibold mb-4">Produksi</h3>
+                        <div x-show="step===5" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6" x-data="{ 
+                            products: [{ productIndex: 0 }], 
+                            kolams: [[]], 
+                            ikans: [[]],
+                            totalLuasKolam: [0],
+                            getNextProductIndex() {
+                                let maxIndex = 0;
+                                this.products.forEach(p => {
+                                    if (p.productIndex > maxIndex) maxIndex = p.productIndex;
+                                });
+                                return maxIndex + 1;
+                            },
+                            calculateTotalLuasKolam(pIndex) {
+                                if (!this.kolams[pIndex]) {
+                                    this.totalLuasKolam[pIndex] = 0;
+                                    return;
+                                }
+                                let total = 0;
+                                this.kolams[pIndex].forEach(kolam => {
+                                    const ukuran = parseFloat(kolam.ukuran) || 0;
+                                    const jumlah = parseFloat(kolam.jumlah) || 1;
+                                    total += (ukuran * jumlah);
+                                });
+                                this.totalLuasKolam[pIndex] = total;
+                            }
+                        }">
+                            <h3 class="text-lg font-semibold mb-6">Produksi</h3>
                             
-                            <!-- Total Keseluruhan Section -->
-                            <div class="mb-6 bg-white rounded-lg p-4 border border-gray-300">
-                                <h4 class="text-base font-semibold text-slate-700 mb-4">Total Keseluruhan</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <x-input-label for="total_luas_kolam" :value="__('Total Luas Kolam (m²)')" />
-                                        <x-text-input id="total_luas_kolam" class="block mt-1 w-full" type="number" step="0.01" name="produksi[total_luas_kolam]" :value="old('produksi.total_luas_kolam', '0.00')" placeholder="0.00" />
-                                    </div>
-                                    <div>
-                                        <x-input-label for="total_produksi" :value="__('Total Produksi')" />
-                                        <x-text-input id="total_produksi" class="block mt-1 w-full" type="number" step="0.01" name="produksi[total_produksi]" :value="old('produksi.total_produksi', '0.00')" placeholder="0.00" />
-                                    </div>
-                                    <div>
-                                        <x-input-label for="satuan_produksi" :value="__('Satuan Produksi')" />
-                                        <select id="satuan_produksi" name="produksi[satuan_produksi]" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
-                                            <option value="">Pilih Satuan</option>
-                                            <option value="Kg" {{ old('produksi.satuan_produksi')=='Kg' ? 'selected' : '' }}>Kg</option>
-                                            <option value="Ton" {{ old('produksi.satuan_produksi')=='Ton' ? 'selected' : '' }}>Ton</option>
-                                            <option value="Ekor" {{ old('produksi.satuan_produksi')=='Ekor' ? 'selected' : '' }}>Ekor</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <x-input-label for="harga_per_satuan" :value="__('Harga per Satuan')" />
-                                        <x-text-input id="harga_per_satuan" class="block mt-1 w-full" type="number" step="0.01" name="produksi[harga_per_satuan]" :value="old('produksi.harga_per_satuan', '0.00')" placeholder="0.00" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Data Kolam Section -->
-                            <div class="mb-6">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h4 class="text-base font-semibold text-slate-700">Data Kolam</h4>
-                                    <button type="button" @click="kolams.push({ id: Date.now(), jenis: '', ukuran: '', jumlah: '', komoditas: '' })" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition">
-                                        Tambah Kolam
-                                    </button>
-                                </div>
-
-                                <!-- Template Kolam -->
-                                <template x-for="(kolam, index) in kolams" :key="kolam.id">
-                                    <div class="bg-white rounded-lg border border-gray-300 p-4 mb-3">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                            <div>
-                                                <x-input-label :value="__('Jenis Kolam')" />
-                                                <input type="text" :name="'kolam['+index+'][jenis_kolam]'" x-model="kolam.jenis" placeholder="Misal: Terpal, Beton" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
-                                            </div>
-                                            <div>
-                                                <x-input-label :value="__('Ukuran (m²)')" />
-                                                <input type="number" step="0.01" :name="'kolam['+index+'][ukuran_m2]'" x-model="kolam.ukuran" placeholder="0.00" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
-                                            </div>
-                                            <div>
-                                                <x-input-label :value="__('Jumlah')" />
-                                                <input type="number" :name="'kolam['+index+'][jumlah]'" x-model="kolam.jumlah" placeholder="0" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
-                                            </div>
-                                            <div>
-                                                <x-input-label :value="__('Komoditas')" />
-                                                <select :name="'kolam['+index+'][komoditas]'" x-model="kolam.komoditas" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
-                                                    <option value="">Pilih Komoditas</option>
-                                                    @foreach($komoditas as $k)
-                                                        <option value="{{ $k->nama_komoditas }}">{{ $k->nama_komoditas }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3 text-right">
-                                            <button type="button" @click="kolams.splice(index, 1)" class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                                Hapus
+                            <template x-for="(product, pIndex) in products" :key="pIndex">
+                                <div class="mb-6">
+                                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-300">
+                                        <h4 class="text-base font-semibold text-slate-800" x-text="'Produk ' + (pIndex + 1)"></h4>
+                                        <div class="flex gap-2">
+                                            <button type="button" @click="products.push({ productIndex: getNextProductIndex() }); kolams.push([]); ikans.push([]); totalLuasKolam.push(0)" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                                Tambah Produk
                                             </button>
+                                            <button type="button" @click="products.splice(pIndex, 1); kolams.splice(pIndex, 1); ikans.splice(pIndex, 1); totalLuasKolam.splice(pIndex, 1)" x-show="products.length > 1" class="px-3 py-1.5 text-sm text-red-600 hover:text-white hover:bg-red-600 border border-red-600 rounded transition">Hapus Produk</button>
                                         </div>
                                     </div>
-                                </template>
 
-                                <!-- Empty State -->
-                                <div x-show="kolams.length === 0" class="text-center py-8 text-slate-500 bg-white rounded-lg border border-dashed border-gray-300">
-                                    <p class="text-sm">Belum ada data kolam. Klik tombol "Tambah Kolam" untuk menambahkan.</p>
-                                </div>
-                            </div>
-
-                            <!-- Data Ikan Section -->
-                            <div>
-                                <div class="flex items-center justify-between mb-4">
-                                    <h4 class="text-base font-semibold text-slate-700">Data Ikan</h4>
-                                    <button type="button" @click="ikans.push({ id: Date.now(), jenis: '', jenis_indukan: '', jumlah: '', asal: '' })" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition">
-                                        Tambah Ikan
-                                    </button>
-                                </div>
-
-                                <!-- Template Ikan -->
-                                <template x-for="(ikan, index) in ikans" :key="ikan.id">
-                                    <div class="bg-white rounded-lg border border-gray-300 p-4 mb-3">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                            <div>
-                                                <x-input-label :value="__('Jenis Ikan *')" />
-                                                <select :name="'ikan['+index+'][jenis_ikan]'" x-model="ikan.jenis" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
-                                                    <option value="">Pilih Jenis Ikan</option>
-                                                    @foreach($komoditas as $k)
-                                                        <option value="{{ $k->nama_komoditas }}">{{ $k->nama_komoditas }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <x-input-label :value="__('Jenis Indukan')" />
-                                                <input type="text" :name="'ikan['+index+'][jenis_indukan]'" x-model="ikan.jenis_indukan" placeholder="Misal: Lokal, Unggul" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
-                                            </div>
-                                            <div>
-                                                <x-input-label :value="__('Jumlah')" />
-                                                <input type="number" :name="'ikan['+index+'][jumlah]'" x-model="ikan.jumlah" placeholder="0" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
-                                            </div>
-                                            <div>
-                                                <x-input-label :value="__('Asal Indukan')" />
-                                                <input type="text" :name="'ikan['+index+'][asal_indukan]'" x-model="ikan.asal" placeholder="Misal: BBPBAT, Lokal" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                    <div class="space-y-6">
+                                        <!-- Total Keseluruhan Section -->
+                                        <div class="bg-white rounded-lg p-4 border border-gray-300">
+                                            <h4 class="text-base font-semibold text-slate-700 mb-4">Total Keseluruhan</h4>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                <div>
+                                                    <x-input-label :value="__('Bulan')" />
+                                                    <select x-bind:name="'produksi['+product.productIndex+'][bulan]'" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                                        <option value="">Pilih Bulan</option>
+                                                        <option value="Januari">Januari</option>
+                                                        <option value="Februari">Februari</option>
+                                                        <option value="Maret">Maret</option>
+                                                        <option value="April">April</option>
+                                                        <option value="Mei">Mei</option>
+                                                        <option value="Juni">Juni</option>
+                                                        <option value="Juli">Juli</option>
+                                                        <option value="Agustus">Agustus</option>
+                                                        <option value="September">September</option>
+                                                        <option value="Oktober">Oktober</option>
+                                                        <option value="November">November</option>
+                                                        <option value="Desember">Desember</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <x-input-label :value="__('Total Luas Kolam (m²)')" />
+                                                    <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm bg-gray-100" type="number" step="0.01" x-bind:name="'produksi['+product.productIndex+'][total_luas_kolam]'" x-bind:value="totalLuasKolam[pIndex] || 0" readonly placeholder="0.00" />
+                                                    <p class="text-xs text-gray-500 mt-1">Otomatis dihitung dari data kolam</p>
+                                                </div>
+                                                <div>
+                                                    <x-input-label :value="__('Total Produksi')" />
+                                                    <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" step="0.01" x-bind:name="'produksi['+product.productIndex+'][total_produksi]'" placeholder="0.00" />
+                                                </div>
+                                                <div>
+                                                    <x-input-label :value="__('Satuan Produksi')" />
+                                                    <select x-bind:name="'produksi['+product.productIndex+'][satuan_produksi]'" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                                        <option value="">Pilih Satuan</option>
+                                                        <option value="Kg">Kg</option>
+                                                        <option value="Ton">Ton</option>
+                                                        <option value="Ekor">Ekor</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <x-input-label :value="__('Harga per Satuan')" />
+                                                    <input class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" type="number" step="0.01" x-bind:name="'produksi['+product.productIndex+'][harga_per_satuan]'" placeholder="0.00" />
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="mt-3 text-right">
-                                            <button type="button" @click="ikans.splice(index, 1)" class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                                Hapus
-                                            </button>
+
+                                        <!-- Data Kolam Section -->
+                                        <div>
+                                            <div class="flex items-center justify-between mb-4">
+                                                <h4 class="text-base font-semibold text-slate-700">Data Kolam</h4>
+                                                <button type="button" @click="if (!kolams[pIndex]) kolams[pIndex] = []; kolams[pIndex].push({ id: Date.now(), jenis: '', ukuran: '', jumlah: '', komoditas: '' }); calculateTotalLuasKolam(pIndex)" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition">
+                                                    Tambah Kolam
+                                                </button>
+                                            </div>
+
+                                            <!-- Template Kolam -->
+                                            <template x-for="(kolam, kIndex) in kolams[pIndex]" :key="kolam.id">
+                                                <div class="bg-white rounded-lg border border-gray-300 p-4 mb-3">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                        <div>
+                                                            <x-input-label :value="__('Jenis Kolam')" />
+                                                            <input type="text" x-bind:name="'produksi['+product.productIndex+'][kolam]['+kIndex+'][jenis_kolam]'" x-model="kolam.jenis" placeholder="Misal: Terpal, Beton" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <x-input-label :value="__('Ukuran (m²)')" />
+                                                            <input type="number" step="0.01" x-bind:name="'produksi['+product.productIndex+'][kolam]['+kIndex+'][ukuran_m2]'" x-model="kolam.ukuran" @input="calculateTotalLuasKolam(pIndex)" placeholder="0.00" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <x-input-label :value="__('Jumlah')" />
+                                                            <input type="number" x-bind:name="'produksi['+product.productIndex+'][kolam]['+kIndex+'][jumlah]'" x-model="kolam.jumlah" @input="calculateTotalLuasKolam(pIndex)" placeholder="0" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <x-input-label :value="__('Komoditas')" />
+                                                            <select x-bind:name="'produksi['+product.productIndex+'][kolam]['+kIndex+'][komoditas]'" x-model="kolam.komoditas" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                                <option value="">Pilih Komoditas</option>
+                                                                @foreach($komoditas as $k)
+                                                                    <option value="{{ $k->nama_komoditas }}">{{ $k->nama_komoditas }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-3 text-right">
+                                                        <button type="button" @click="kolams[pIndex].splice(kIndex, 1); calculateTotalLuasKolam(pIndex)" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                            Hapus
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Empty State -->
+                                            <div x-show="!kolams[pIndex] || kolams[pIndex].length === 0" class="text-center py-8 text-slate-500 bg-white rounded-lg border border-dashed border-gray-300">
+                                                <p class="text-sm">Belum ada data kolam. Klik tombol "Tambah Kolam" untuk menambahkan.</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Data Ikan Section -->
+                                        <div>
+                                            <div class="flex items-center justify-between mb-4">
+                                                <h4 class="text-base font-semibold text-slate-700">Data Ikan</h4>
+                                                <button type="button" @click="if (!ikans[pIndex]) ikans[pIndex] = []; ikans[pIndex].push({ id: Date.now(), jenis: '', jenis_indukan: '', jumlah: '', asal: '' })" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition">
+                                                    Tambah Ikan
+                                                </button>
+                                            </div>
+
+                                            <!-- Template Ikan -->
+                                            <template x-for="(ikan, iIndex) in ikans[pIndex]" :key="ikan.id">
+                                                <div class="bg-white rounded-lg border border-gray-300 p-4 mb-3">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                        <div>
+                                                            <x-input-label :value="__('Jenis Ikan *')" />
+                                                            <select x-bind:name="'produksi['+product.productIndex+'][ikan]['+iIndex+'][jenis_ikan]'" x-model="ikan.jenis" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                                <option value="">Pilih Jenis Ikan</option>
+                                                                @foreach($komoditas as $k)
+                                                                    <option value="{{ $k->nama_komoditas }}">{{ $k->nama_komoditas }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <x-input-label :value="__('Jenis Indukan')" />
+                                                            <input type="text" x-bind:name="'produksi['+product.productIndex+'][ikan]['+iIndex+'][jenis_indukan]'" x-model="ikan.jenis_indukan" placeholder="Misal: Lokal, Unggul" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <x-input-label :value="__('Jumlah')" />
+                                                            <input type="number" x-bind:name="'produksi['+product.productIndex+'][ikan]['+iIndex+'][jumlah]'" x-model="ikan.jumlah" placeholder="0" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                        </div>
+                                                        <div>
+                                                            <x-input-label :value="__('Asal Indukan')" />
+                                                            <input type="text" x-bind:name="'produksi['+product.productIndex+'][ikan]['+iIndex+'][asal_indukan]'" x-model="ikan.asal" placeholder="Misal: BBPBAT, Lokal" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-3 text-right">
+                                                        <button type="button" @click="ikans[pIndex].splice(iIndex, 1)" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                            Hapus
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Empty State -->
+                                            <div x-show="!ikans[pIndex] || ikans[pIndex].length === 0" class="text-center py-8 text-slate-500 bg-white rounded-lg border border-dashed border-gray-300">
+                                                <p class="text-sm">Belum ada data ikan. Klik tombol "Tambah Ikan" untuk menambahkan.</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </template>
-
-                                <!-- Empty State -->
-                                <div x-show="ikans.length === 0" class="text-center py-8 text-slate-500 bg-white rounded-lg border border-dashed border-gray-300">
-                                    <p class="text-sm">Belum ada data ikan. Klik tombol "Tambah Ikan" untuk menambahkan.</p>
                                 </div>
-                            </div>
+                            </template>
                         </div>
 
                         <!-- Step 6: Tenaga Kerja -->

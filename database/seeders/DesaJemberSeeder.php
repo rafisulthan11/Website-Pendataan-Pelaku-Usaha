@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DesaJemberSeeder extends Seeder
 {
@@ -15,9 +16,9 @@ class DesaJemberSeeder extends Seeder
     public function run(): void
     {
         // Hapus data lama
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Schema::disableForeignKeyConstraints();
         DB::table('master_desas')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints();
 
         $desas = [
             // Kecamatan Kencong (1)

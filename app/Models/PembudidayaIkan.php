@@ -11,6 +11,7 @@ class PembudidayaIkan extends Model
     
     protected $fillable = [
         'id_pembudidaya',
+        'product_index',
         'jenis_ikan',
         'jenis_indukan',
         'jumlah',

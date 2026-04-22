@@ -11,12 +11,12 @@ class IsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Cek jika user sudah login DAN rolenya bukan 'admin'
-        if (Auth::check() && Auth::user()->role?->nama_role !== 'admin') {
+        // Cek jika user sudah login DAN rolenya bukan admin/super admin
+        if (Auth::check() && !Auth::user()->isAdminOrSuperAdmin()) {
             abort(403, 'THIS ACTION IS UNAUTHORIZED.');
         }
 
-        // Jika user adalah admin, izinkan request untuk melanjutkan
+        // Jika user adalah admin atau super admin, izinkan request untuk melanjutkan
         return $next($request);
     }
 }

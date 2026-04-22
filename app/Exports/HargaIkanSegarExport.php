@@ -3,6 +3,8 @@
 namespace App\Exports;
 
 use App\Models\HargaIkanSegar;
+use App\Models\MasterDesa;
+use App\Models\MasterKecamatan;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -10,6 +12,7 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class HargaIkanSegarExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths
 {
@@ -22,7 +25,8 @@ class HargaIkanSegarExport implements FromCollection, WithHeadings, WithMapping,
 
     public function collection()
     {
-        $query = HargaIkanSegar::with(['kecamatan', 'desa']);
+        $query = HargaIkanSegar::with(['kecamatan', 'desa'])
+            ->where('status', 'verified'); // Hanya data yang sudah diverifikasi
 
         // Apply filters
         if (!empty($this->filters['kecamatan'])) {
@@ -55,7 +59,88 @@ class HargaIkanSegarExport implements FromCollection, WithHeadings, WithMapping,
             $query->where('id_harga', $this->filters['id']);
         }
 
-        return $query->orderBy('tanggal_input', 'desc')->get();
+        $verified = $query->get();
+
+        $backup = DB::table('harga_ikan_segar_verified_backup as backup')
+            ->join('harga_ikan_segars as current', 'current.id_harga', '=', 'backup.id_harga')
+            ->whereIn('current.status', ['pending', 'rejected'])
+            ->select('backup.*')
+            ->get()
+            ->map(function ($row) {
+                $data = json_decode($row->data_verified, true);
+                if (!is_array($data)) {
+                    return null;
+                }
+
+                $relations = [];
+                foreach (['kecamatan', 'desa'] as $rel) {
+                    if (isset($data[$rel])) {
+                        $relations[$rel] = $data[$rel];
+                        unset($data[$rel]);
+                    }
+                }
+
+                $harga = new HargaIkanSegar();
+                $harga->forceFill($data);
+                $harga->exists = true;
+                $harga->setAttribute('from_backup_snapshot', true);
+
+                if (!empty($relations['kecamatan'])) {
+                    $kecamatan = new MasterKecamatan();
+                    $kecamatan->forceFill($relations['kecamatan']);
+                    $kecamatan->exists = true;
+                    $harga->setRelation('kecamatan', $kecamatan);
+                }
+                if (!empty($relations['desa'])) {
+                    $desa = new MasterDesa();
+                    $desa->forceFill($relations['desa']);
+                    $desa->exists = true;
+                    $harga->setRelation('desa', $desa);
+                }
+
+                return $harga;
+            })
+            ->filter(function ($item) {
+                if (!$item) {
+                    return false;
+                }
+
+                if (!empty($this->filters['kecamatan']) && (string) ($item->id_kecamatan ?? '') !== (string) $this->filters['kecamatan']) {
+                    return false;
+                }
+                if (!empty($this->filters['jenis_ikan']) && !str_contains(strtolower((string) ($item->jenis_ikan ?? '')), strtolower((string) $this->filters['jenis_ikan']))) {
+                    return false;
+                }
+                if (!empty($this->filters['nama_pasar']) && !str_contains(strtolower((string) ($item->nama_pasar ?? '')), strtolower((string) $this->filters['nama_pasar']))) {
+                    return false;
+                }
+                if (!empty($this->filters['bulan'])) {
+                    $bulan = (string) ($item->tanggal_input ? Carbon::parse($item->tanggal_input)->format('m') : '');
+                    if ($bulan !== str_pad((string) $this->filters['bulan'], 2, '0', STR_PAD_LEFT)) {
+                        return false;
+                    }
+                }
+                if (!empty($this->filters['search'])) {
+                    $search = strtolower((string) $this->filters['search']);
+                    $haystack = strtolower((string) ($item->nama_pasar ?? '')) . ' ' . strtolower((string) ($item->nama_pedagang ?? '')) . ' ' . strtolower((string) ($item->jenis_ikan ?? ''));
+                    if (!str_contains($haystack, $search)) {
+                        return false;
+                    }
+                }
+                if (!empty($this->filters['id']) && (string) ($item->id_harga ?? '') !== (string) $this->filters['id']) {
+                    return false;
+                }
+
+                return true;
+            })
+            ->values();
+
+        $all = $verified->keyBy('id_harga');
+        foreach ($backup as $backupItem) {
+            $all[$backupItem->id_harga] = $backupItem;
+        }
+
+        return $all->values()->sortByDesc('tanggal_input')->values();
     }
 
     public function headings(): array

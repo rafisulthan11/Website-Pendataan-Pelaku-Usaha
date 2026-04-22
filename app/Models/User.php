@@ -25,7 +25,9 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [ // <-- PENYESUAIAN 2
+        'name',
         'nama_lengkap',
+        'nip',
         'email',
         'password',
         'id_role',
@@ -59,5 +61,50 @@ class User extends Authenticatable
     public function role() // <-- PENYESUAIAN 3
     {
         return $this->belongsTo(Role::class, 'id_role', 'id_role');
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role?->nama_role === 'staff';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role?->nama_role === 'admin';
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role?->nama_role === 'super admin';
+    }
+
+    public function isAdminOrSuperAdmin(): bool
+    {
+        return $this->isAdmin() || $this->isSuperAdmin();
+    }
+
+    /**
+     * Get the user's full name (accessor for 'name' attribute)
+     * Maps the custom 'nama_lengkap' field to the standard 'name' attribute
+     */
+    public function getNameAttribute()
+    {
+        return $this->nama_lengkap ?? 'User';
+    }
+
+    /**
+     * Support code paths that still access the default 'id' attribute.
+     */
+    public function getIdAttribute()
+    {
+        return $this->attributes['id_user'] ?? null;
+    }
+
+    /**
+     * Support legacy assignments using the standard 'name' attribute.
+     */
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['nama_lengkap'] = $value;
     }
 }

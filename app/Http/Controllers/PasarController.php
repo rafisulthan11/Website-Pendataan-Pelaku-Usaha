@@ -3,10 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pasar;
+use App\Models\MasterKecamatan;
+use App\Models\MasterDesa;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PasarController extends Controller
 {
+    /**
+     * Create a notification entry.
+     */
+    protected function createNotification($userId, $type, $title, $message, $moduleId = null)
+    {
+        Notification::create([
+            'user_id' => $userId,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'module' => 'pasar',
+            'module_id' => $moduleId,
+            'url' => $moduleId ? route('pasar.show', $moduleId) : route('pasar.index'),
+        ]);
+    }
+
+    /**
+     * Notify admin and super admin except the current actor.
+     */
+    protected function notifySuperAdmins($type, $title, $message, $moduleId = null)
+    {
+        $actorId = auth()->user()?->id_user;
+
+        $superAdmins = User::whereHas('role', function ($q) {
+            $q->whereIn('nama_role', ['admin', 'super admin']);
+        })
+        ->when($actorId, function ($query) use ($actorId) {
+            $query->where('id_user', '!=', $actorId);
+        })
+        ->get();
+
+        foreach ($superAdmins as $superAdmin) {
+            $this->createNotification($superAdmin->id_user, $type, $title, $message, $moduleId);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +78,9 @@ class PasarController extends Controller
      */
     public function create()
     {
-        return view('pages.pasar.create');
+        $kecamatans = MasterKecamatan::orderBy('nama_kecamatan')->get();
+
+        return view('pages.pasar.create', compact('kecamatans'));
     }
 
     /**
@@ -48,15 +90,39 @@ class PasarController extends Controller
     {
         $validated = $request->validate([
             'nama_pasar' => 'required|string|max:255',
-            'kecamatan' => 'required|string|max:255',
-            'desa' => 'required|string|max:255',
+            'id_kecamatan' => 'required|exists:master_kecamatans,id_kecamatan',
+            'id_desa' => 'required|exists:master_desas,id_desa',
             'alamat' => 'required|string',
             'latitude' => 'nullable|string|max:255',
             'longitude' => 'nullable|string|max:255',
             'status' => 'required|in:aktif,tidak aktif'
         ]);
 
-        Pasar::create($validated);
+        $kecamatan = MasterKecamatan::findOrFail($validated['id_kecamatan']);
+        $desa = MasterDesa::query()
+            ->where('id_desa', $validated['id_desa'])
+            ->where('id_kecamatan', $validated['id_kecamatan'])
+            ->first();
+
+        if (!$desa) {
+            return back()
+                ->withErrors(['id_desa' => 'Desa tidak sesuai dengan kecamatan yang dipilih.'])
+                ->withInput();
+        }
+
+        $pasar = Pasar::create(array_merge($validated, [
+            'kecamatan' => $kecamatan->nama_kecamatan,
+            'desa' => $desa->nama_desa,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id()
+        ]));
+
+        $this->notifySuperAdmins(
+            'create',
+            'Data Pasar Ditambahkan',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' menambahkan data pasar: ' . $pasar->nama_pasar,
+            $pasar->id_pasar
+        );
 
         return redirect()->route('pasar.index')
             ->with('success', 'Data pasar berhasil ditambahkan.');
@@ -67,7 +133,7 @@ class PasarController extends Controller
      */
     public function show(string $id)
     {
-        $pasar = Pasar::findOrFail($id);
+        $pasar = Pasar::with(['createdBy', 'updatedBy'])->findOrFail($id);
         return view('pages.pasar.show', compact('pasar'));
     }
 
@@ -77,7 +143,14 @@ class PasarController extends Controller
     public function edit(string $id)
     {
         $pasar = Pasar::findOrFail($id);
-        return view('pages.pasar.edit', compact('pasar'));
+        $kecamatans = MasterKecamatan::orderBy('nama_kecamatan')->get();
+        $selectedKecamatanId = old('id_kecamatan', $pasar->id_kecamatan);
+        $desas = MasterDesa::query()
+            ->where('id_kecamatan', $selectedKecamatanId)
+            ->orderBy('nama_desa')
+            ->get();
+
+        return view('pages.pasar.edit', compact('pasar', 'kecamatans', 'desas'));
     }
 
     /**
@@ -87,16 +160,39 @@ class PasarController extends Controller
     {
         $validated = $request->validate([
             'nama_pasar' => 'required|string|max:255',
-            'kecamatan' => 'required|string|max:255',
-            'desa' => 'required|string|max:255',
+            'id_kecamatan' => 'required|exists:master_kecamatans,id_kecamatan',
+            'id_desa' => 'required|exists:master_desas,id_desa',
             'alamat' => 'required|string',
             'latitude' => 'nullable|string|max:255',
             'longitude' => 'nullable|string|max:255',
             'status' => 'required|in:aktif,tidak aktif'
         ]);
 
+        $kecamatan = MasterKecamatan::findOrFail($validated['id_kecamatan']);
+        $desa = MasterDesa::query()
+            ->where('id_desa', $validated['id_desa'])
+            ->where('id_kecamatan', $validated['id_kecamatan'])
+            ->first();
+
+        if (!$desa) {
+            return back()
+                ->withErrors(['id_desa' => 'Desa tidak sesuai dengan kecamatan yang dipilih.'])
+                ->withInput();
+        }
+
         $pasar = Pasar::findOrFail($id);
-        $pasar->update($validated);
+        $pasar->update(array_merge($validated, [
+            'kecamatan' => $kecamatan->nama_kecamatan,
+            'desa' => $desa->nama_desa,
+            'updated_by' => auth()->id()
+        ]));
+
+        $this->notifySuperAdmins(
+            'update',
+            'Data Pasar Diperbarui',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' memperbarui data pasar: ' . $pasar->nama_pasar,
+            $pasar->id_pasar
+        );
 
         return redirect()->route('pasar.index')
             ->with('success', 'Data pasar berhasil diperbarui.');
@@ -108,7 +204,16 @@ class PasarController extends Controller
     public function destroy(string $id)
     {
         $pasar = Pasar::findOrFail($id);
+        $namaPasar = $pasar->nama_pasar;
+        $idPasar = $pasar->id_pasar;
         $pasar->delete();
+
+        $this->notifySuperAdmins(
+            'delete',
+            'Data Pasar Dihapus',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' menghapus data pasar: ' . $namaPasar,
+            $idPasar
+        );
 
         return redirect()->route('pasar.index')
             ->with('success', 'Data pasar berhasil dihapus.');

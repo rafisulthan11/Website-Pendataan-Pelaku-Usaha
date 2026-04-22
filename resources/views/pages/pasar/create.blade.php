@@ -25,22 +25,29 @@
 
                         <!-- Kecamatan -->
                         <div class="mb-5">
-                            <label for="kecamatan" class="block mb-2 text-base font-medium text-gray-900">
+                            <label for="id_kecamatan" class="block mb-2 text-base font-medium text-gray-900">
                                 Kecamatan <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" id="kecamatan" name="kecamatan" value="{{ old('kecamatan') }}" required class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Masukkan kecamatan">
-                            @error('kecamatan')
+                            <select id="id_kecamatan" name="id_kecamatan" required class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                <option value="">Pilih Kecamatan</option>
+                                @foreach ($kecamatans as $kecamatan)
+                                    <option value="{{ $kecamatan->id_kecamatan }}" {{ old('id_kecamatan') == $kecamatan->id_kecamatan ? 'selected' : '' }}>{{ $kecamatan->nama_kecamatan }}</option>
+                                @endforeach
+                            </select>
+                            @error('id_kecamatan')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- Desa -->
                         <div class="mb-5">
-                            <label for="desa" class="block mb-2 text-base font-medium text-gray-900">
+                            <label for="id_desa" class="block mb-2 text-base font-medium text-gray-900">
                                 Desa <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" id="desa" name="desa" value="{{ old('desa') }}" required class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Masukkan desa">
-                            @error('desa')
+                            <select id="id_desa" name="id_desa" required class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" disabled>
+                                <option value="">Pilih Kecamatan Terlebih Dahulu</option>
+                            </select>
+                            @error('id_desa')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -94,11 +101,11 @@
                         </div>
 
                         <!-- Buttons -->
-                        <div class="flex justify-end gap-3 mt-6">
-                            <a href="{{ route('pasar.index') }}" class="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-base px-5 py-2.5 text-center">
+                        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
+                            <a href="{{ route('pasar.index') }}" class="w-full sm:w-auto text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-medium rounded-lg text-base px-5 py-2.5 text-center">
                                 Batal
                             </a>
-                            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 text-center">
+                            <button type="submit" class="w-full sm:w-auto text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 text-center">
                                 Simpan
                             </button>
                         </div>
@@ -108,3 +115,55 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const kecamatanSelect = document.getElementById('id_kecamatan');
+    const desaSelect = document.getElementById('id_desa');
+    const oldDesaId = '{{ old('id_desa') }}';
+
+    function resetDesa(placeholder) {
+        desaSelect.innerHTML = `<option value="">${placeholder}</option>`;
+        desaSelect.disabled = true;
+    }
+
+    function loadDesa(idKecamatan, selectedDesaId = null) {
+        if (!idKecamatan) {
+            resetDesa('Pilih Kecamatan Terlebih Dahulu');
+            return;
+        }
+
+        desaSelect.innerHTML = '<option value="">Memuat desa...</option>';
+        desaSelect.disabled = true;
+
+        fetch(`/api/desa-by-kecamatan/${idKecamatan}`)
+            .then(response => response.json())
+            .then(data => {
+                desaSelect.innerHTML = '<option value="">Pilih Desa</option>';
+
+                data.forEach(desa => {
+                    const option = document.createElement('option');
+                    option.value = desa.id_desa;
+                    option.textContent = desa.nama_desa;
+                    if (selectedDesaId && String(selectedDesaId) === String(desa.id_desa)) {
+                        option.selected = true;
+                    }
+                    desaSelect.appendChild(option);
+                });
+
+                desaSelect.disabled = false;
+            })
+            .catch(() => {
+                resetDesa('Gagal memuat desa');
+            });
+    }
+
+    kecamatanSelect.addEventListener('change', function () {
+        loadDesa(this.value);
+    });
+
+    if (kecamatanSelect.value) {
+        loadDesa(kecamatanSelect.value, oldDesaId || null);
+    }
+});
+</script>

@@ -13,6 +13,18 @@ class Komoditas extends Model
         'nama_komoditas',
         'tipe',
         'kode',
-        'status'
+        'status',
+        'created_by',
+        'updated_by'
     ];
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'id_user');
+    }
 }

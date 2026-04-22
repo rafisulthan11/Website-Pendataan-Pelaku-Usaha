@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Detail Harga Ikan Segar</title>
+    <title>Detail Harga Ikan</title>
     <style>
         body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; line-height: 1.4; color: #333; }
         .header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid #1e40af; padding-bottom: 10px; }
@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>DETAIL HARGA IKAN SEGAR</h1>
+        <h1>DETAIL HARGA IKAN</h1>
         <p>Dinas Perikanan Kabupaten Jember</p>
         <p>Dicetak pada: {{ \Carbon\Carbon::now()->translatedFormat('d F Y, H:i') }} WIB</p>
     </div>
@@ -28,6 +28,7 @@
         <div class="section-title">PROFIL PASAR</div>
         <table class="info-table">
             <tr><td>Tanggal Input</td><td>: {{ $harga->tanggal_input ? \Carbon\Carbon::parse($harga->tanggal_input)->translatedFormat('d F Y') : '-' }}</td></tr>
+            <tr><td>Tahun Pendataan</td><td>: {{ $harga->tahun_pendataan ?? '-' }}</td></tr>
             <tr><td>Nama Pasar</td><td>: {{ $harga->nama_pasar ?? '-' }}</td></tr>
             <tr><td>Nama Pedagang</td><td>: {{ $harga->nama_pedagang ?? '-' }}</td></tr>
             <tr><td>Kecamatan</td><td>: {{ $harga->kecamatan->nama_kecamatan ?? '-' }}</td></tr>

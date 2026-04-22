@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SINCAN - Sistem Informasi Pendataan Bidang Budidaya dan Pasca Panen Dinas Perikanan Jember</title>
+    <title>SIPBIPER-BP - Sistem Informasi Pendataan Bidang Budidaya dan Pasca Panen Dinas Perikanan Jember</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,7 +59,7 @@
         }
         
         .logo-img {
-            width: 160px;
+            width: clamp(180px, 24vw, 230px);
             height: auto;
             object-fit: contain;
         }
@@ -124,8 +124,11 @@
         }
         
         .hero-image {
-            max-width: 200%;
+            display: block;
+            width: min(78vw, 360px);
+            max-width: 100%;
             height: auto;
+            margin: 0 auto;
             filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
             animation: float 3s ease-in-out infinite;
         }
@@ -298,6 +301,10 @@
             .hero-title {
                 font-size: 2.2rem;
             }
+
+            .hero-image {
+                width: min(72vw, 260px);
+            }
             
             .hero-subtitle {
                 font-size: 1rem;
@@ -318,7 +325,7 @@
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <img src="{{ asset('images/sincan-logo.png') }}" alt="SINCAN Logo" class="logo-img" onerror="this.style.display='none'">
+                <img src="{{ asset('images/sipbiper-logo.png') }}" alt="SIPBIPER-BP Logo" class="logo-img" onerror="this.style.display='none'">
             </a>
             
             @if (Route::has('login'))
@@ -329,7 +336,7 @@
                         </a>
                     @else
                         <a href="{{ route('login') }}" class="btn btn-login">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Masuk
                         </a>
                     @endauth
                 </div>
@@ -344,7 +351,7 @@
                 <div class="col-lg-7 mb-5 mb-lg-0" data-aos="fade-right">
                     <h1 class="hero-title">Sistem Informasi Pendataan Bidang Budidaya dan Pasca Panen Dinas Perikanan Jember</h1>
                     <p class="hero-subtitle">
-                        SINCAN adalah platform digital terpadu untuk pengelolaan data dan informasi sektor perikanan. 
+                        SIPBIPER-BP adalah platform digital terpadu untuk pengelolaan data dan informasi sektor perikanan. 
                         Memudahkan monitoring, pelaporan, dan analisis data pelaku usaha perikanan di Kabupaten Jember.
                     </p>
                     @if (Route::has('login'))
@@ -356,7 +363,7 @@
                     @endif
                 </div>
                 <div class="col-lg-5 text-center" data-aos="fade-left">
-                    <img src="{{ asset('images/dinas-perikanan-logo.png') }}" alt="Dinas Perikanan" class="hero-image" style="margin-left: 50px; height: 350px; width: auto;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%2360a5fa%22 opacity=%220.2%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22white%22%3ELogo Dinas Perikanan%3C/text%3E%3C/svg%3E'">
+                    <img src="{{ asset('images/dinas-perikanan-logo.png') }}" alt="Dinas Perikanan" class="hero-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%2360a5fa%22 opacity=%220.2%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22white%22%3ELogo Dinas Perikanan%3C/text%3E%3C/svg%3E'">
                 </div>
             </div>
         </div>
@@ -399,7 +406,7 @@
                             <i class="bi bi-graph-up"></i>
                         </div>
                         <div class="stat-number">{{ number_format($totalHargaIkan) }}</div>
-                        <div class="stat-label">Data Harga Ikan Segar</div>
+                        <div class="stat-label">Data Harga Ikan</div>
                     </div>
                 </div>
             </div>
@@ -409,7 +416,7 @@
     <!-- Features Section -->
     <section class="features-section">
         <div class="container">
-            <h2 class="section-title" data-aos="fade-up">Fitur Utama SINCAN</h2>
+            <h2 class="section-title" data-aos="fade-up">Fitur Utama SIPBIPER-BP</h2>
             <p class="section-subtitle" data-aos="fade-up" data-aos-delay="100">
                 Berbagai fitur lengkap untuk mendukung pengelolaan data perikanan yang efektif dan efisien
             </p>
@@ -449,7 +456,7 @@
                         </div>
                         <h3 class="feature-title">Monitoring Harga Ikan</h3>
                         <p class="feature-description">
-                            Pantau fluktuasi harga ikan segar dari berbagai pasar untuk mendukung kebijakan yang tepat sasaran.
+                            Pantau fluktuasi harga ikan dari berbagai pasar untuk mendukung kebijakan yang tepat sasaran.
                         </p>
                     </div>
                 </div>
@@ -501,7 +508,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 mb-4 mb-lg-0">
-                    <div class="footer-logo">SINCAN</div>
+                    <div class="footer-logo">SIPBIPER-BP</div>
                     <p class="footer-text">
                         Sistem Informasi Pendataan Bidang Budidaya dan Pasca Panen<br>
                         Dinas Perikanan Kabupaten Jember<br>
@@ -517,7 +524,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p class="mb-0">© {{ date('Y') }} SINCAN - Dinas Perikanan Kabupaten Jember. All rights reserved.</p>
+                <p class="mb-0">© {{ date('Y') }} SIPBIPER-BP - Dinas Perikanan Kabupaten Jember. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -545,6 +552,21 @@
                 navbar.classList.remove('scrolled');
             }
         });
+
+        // Prevent back to authenticated pages after logout
+        (function() {
+            // Replace history state to prevent going back to dashboard
+            if (window.history && window.history.pushState) {
+                // Push current state to history to replace previous authenticated page
+                window.history.pushState(null, null, window.location.href);
+                
+                // Listen for back button
+                window.addEventListener('popstate', function(event) {
+                    // Push state again to prevent going back
+                    window.history.pushState(null, null, window.location.href);
+                });
+            }
+        })();
     </script>
 </body>
 </html>

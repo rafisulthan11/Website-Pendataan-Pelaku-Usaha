@@ -114,6 +114,10 @@
                 <td>Jenis Budidaya</td>
                 <td>: {{ $pembudidaya->jenis_budidaya ?? '-' }}</td>
             </tr>
+            <tr>
+                <td>Tahun Pendataan</td>
+                <td>: {{ $pembudidaya->tahun_pendataan ?? '-' }}</td>
+            </tr>
         </table>
     </div>
 
@@ -140,6 +144,10 @@
             <tr>
                 <td>Status Perkawinan</td>
                 <td>: {{ $pembudidaya->status_perkawinan ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td>Jumlah Tanggungan</td>
+                <td>: {{ $pembudidaya->jumlah_tanggungan ?? '-' }}</td>
             </tr>
             <tr>
                 <td>Alamat Lengkap</td>
@@ -339,7 +347,7 @@
     </div>
 
     <!-- Produksi -->
-    @php $prod = $pembudidaya->produksi; @endphp
+    @php $prod = $pembudidaya->produksiFirst; @endphp
     <div class="section">
         <div class="section-title">PRODUKSI</div>
         

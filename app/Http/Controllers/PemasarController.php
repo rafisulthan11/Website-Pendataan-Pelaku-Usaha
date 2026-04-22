@@ -6,10 +6,47 @@ use App\Models\Pemasar;
 use App\Models\MasterKecamatan;
 use App\Models\MasterDesa;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Notification;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class PemasarController extends Controller
 {
+    /**
+     * Helper method to create notification
+     */
+    protected function createNotification($userId, $type, $title, $message, $moduleId = null)
+    {
+        Notification::create([
+            'user_id' => $userId,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'module' => 'pemasar',
+            'module_id' => $moduleId,
+            'url' => $moduleId ? route('pemasar.show', $moduleId) : route('pemasar.index'),
+        ]);
+    }
+
+    /**
+     * Notify admin and super admin roles
+     */
+    protected function notifyAdmins($type, $title, $message, $moduleId = null, $excludeUserId = null)
+    {
+        $admins = User::whereHas('role', function($q) {
+            $q->whereIn('nama_role', ['admin', 'super admin']);
+        })
+        ->when($excludeUserId, function ($query) use ($excludeUserId) {
+            $query->where('id_user', '!=', $excludeUserId);
+        })
+        ->get();
+
+        foreach ($admins as $admin) {
+            $this->createNotification($admin->id_user, $type, $title, $message, $moduleId);
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -17,6 +54,10 @@ class PemasarController extends Controller
     {
         // Ambil parameter pencarian dan jumlah per halaman dari query string
         $search = trim((string) $request->query('search', ''));
+        // Jika request memiliki parameter 'tahun', gunakan nilai tersebut (bisa empty string)
+        // Jika tidak ada parameter 'tahun', gunakan tahun saat ini sebagai default (first load)
+        $tahun = $request->has('tahun') ? (string) $request->query('tahun') : (string) date('Y');
+        $status = $request->query('status', '');
         $allowedPerPage = [10, 25, 50, 100];
         $perPage = (int) $request->query('per_page', 10);
         if (! in_array($perPage, $allowedPerPage, true)) {
@@ -26,6 +67,16 @@ class PemasarController extends Controller
         $query = Pemasar::query()
             ->with(['kecamatan', 'desa'])
             ->orderByDesc('id_pemasar');
+
+        // Filter berdasarkan tahun pendataan (hanya jika tahun tidak kosong)
+        if (!empty($tahun)) {
+            $query->where('tahun_pendataan', $tahun);
+        }
+
+        // Filter berdasarkan status
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -48,6 +99,8 @@ class PemasarController extends Controller
         return view('pages.pemasar.index', [
             'pemasars' => $pemasars,
             'search' => $search,
+            'tahun' => $tahun,
+            'status' => $status,
             'perPage' => $perPage,
             'allowedPerPage' => $allowedPerPage,
         ]);
@@ -70,7 +123,15 @@ class PemasarController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nik_pemasar' => 'required|string|size:16|unique:pemasars,nik_pemasar',
+            'tahun_pendataan' => 'required|integer|min:2026|max:' . (date('Y') + 5),
+            'nik_pemasar' => [
+                'required',
+                'string',
+                'size:16',
+                Rule::unique('pemasars', 'nik_pemasar')->where(function ($query) use ($request) {
+                    return $query->where('tahun_pendataan', $request->tahun_pendataan);
+                })
+            ],
             'nama_lengkap' => 'required|string|max:255',
             'jenis_kelamin' => 'nullable|string',
             'tempat_lahir' => 'nullable|string|max:255',
@@ -142,6 +203,34 @@ class PemasarController extends Controller
             'bulan_produksi' => 'nullable|array',
             'jumlah_hari_produksi' => 'nullable|integer',
             'distribusi_pemasaran' => 'nullable|string',
+            // Production Fields
+            'biaya_produksi' => 'nullable|numeric',
+            'harga_jual_produksi' => 'nullable|numeric',
+            'kapasitas_terpasang' => 'nullable|numeric',
+            'hasil_produksi_kg' => 'nullable|numeric',
+            'hasil_produksi_rp' => 'nullable|numeric',
+            // New pemasaran array structure (multiple sections)
+            'pemasaran' => 'nullable|array',
+            'pemasaran.*.kapasitas_terpasang' => 'nullable|numeric',
+            'pemasaran.*.hasil_produksi_kg' => 'nullable|numeric',
+            'pemasaran.*.hasil_produksi_rp' => 'nullable|numeric',
+            'pemasaran.*.bulan_produksi' => 'nullable|array',
+            'pemasaran.*.distribusi_pemasaran' => 'nullable|string',
+            'pemasaran.*.data_pemasaran' => 'nullable|array',
+            'pemasaran.*.data_pemasaran.*.jenis_ikan' => 'nullable|string',
+            'pemasaran.*.data_pemasaran.*.jumlah_volume' => 'nullable|numeric',
+            'pemasaran.*.data_pemasaran.*.asal_ikan' => 'nullable|string',
+            'pemasaran.*.data_pemasaran.*.harga_beli' => 'nullable|numeric',
+            'pemasaran.*.data_pemasaran.*.harga_jual' => 'nullable|numeric',
+            // Old structure (backward compatibility)
+            'data_pemasaran' => 'nullable|array',
+            'data_pemasaran.*.jenis_ikan' => 'nullable|string',
+            'data_pemasaran.*.jumlah_volume' => 'nullable|numeric',
+            'data_pemasaran.*.kebutuhan_min' => 'nullable|numeric',
+            'data_pemasaran.*.kebutuhan_max' => 'nullable|numeric',
+            'data_pemasaran.*.asal_ikan' => 'nullable|string',
+            'data_pemasaran.*.harga_beli' => 'nullable|numeric',
+            'data_pemasaran.*.harga_jual' => 'nullable|numeric',
             // Tenaga Kerja
             'wni_laki_tetap' => 'nullable|integer',
             'wni_laki_tidak_tetap' => 'nullable|integer',
@@ -167,6 +256,8 @@ class PemasarController extends Controller
             'foto_nib' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'foto_sertifikat_pirt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'foto_sertifikat_halal' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'nik_pemasar.unique' => 'NIK ini sudah terdaftar untuk tahun pendataan yang sama. Satu NIK hanya boleh didaftarkan satu kali per tahun.',
         ]);
 
         // Map kecamatan_usaha dan desa_usaha ke id_kecamatan_usaha dan id_desa_usaha
@@ -177,6 +268,42 @@ class PemasarController extends Controller
         if ($request->has('desa_usaha')) {
             $validated['id_desa_usaha'] = $request->desa_usaha;
             unset($validated['desa_usaha']);
+        }
+
+        // Process pemasaran array structure (new format)
+        if (isset($validated['pemasaran']) && is_array($validated['pemasaran'])) {
+            $pemasaranSections = $validated['pemasaran'];
+            
+            // If only one section, use it as the main data (backward compatible)
+            if (count($pemasaranSections) === 1) {
+                $section = $pemasaranSections[0];
+                $validated['kapasitas_terpasang'] = $section['kapasitas_terpasang'] ?? null;
+                $validated['hasil_produksi_kg'] = $section['hasil_produksi_kg'] ?? null;
+                $validated['hasil_produksi_rp'] = $section['hasil_produksi_rp'] ?? null;
+                $validated['bulan_produksi'] = $section['bulan_produksi'] ?? [];
+                $validated['distribusi_pemasaran'] = $section['distribusi_pemasaran'] ?? null;
+                $validated['data_pemasaran'] = $section['data_pemasaran'] ?? [];
+            } else {
+                // Multiple sections: merge data_pemasaran arrays and use first section for other fields
+                $firstSection = $pemasaranSections[0];
+                $validated['kapasitas_terpasang'] = $firstSection['kapasitas_terpasang'] ?? null;
+                $validated['hasil_produksi_kg'] = $firstSection['hasil_produksi_kg'] ?? null;
+                $validated['hasil_produksi_rp'] = $firstSection['hasil_produksi_rp'] ?? null;
+                $validated['bulan_produksi'] = $firstSection['bulan_produksi'] ?? [];
+                $validated['distribusi_pemasaran'] = $firstSection['distribusi_pemasaran'] ?? null;
+                
+                // Merge all data_pemasaran from all sections
+                $mergedDataPemasaran = [];
+                foreach ($pemasaranSections as $section) {
+                    if (isset($section['data_pemasaran']) && is_array($section['data_pemasaran'])) {
+                        $mergedDataPemasaran = array_merge($mergedDataPemasaran, $section['data_pemasaran']);
+                    }
+                }
+                $validated['data_pemasaran'] = $mergedDataPemasaran;
+            }
+            
+            // Remove pemasaran array as we've processed it
+            unset($validated['pemasaran']);
         }
 
         // Convert array fields to JSON
@@ -191,6 +318,9 @@ class PemasarController extends Controller
         }
         if (isset($validated['mesin_peralatan'])) {
             $validated['mesin_peralatan'] = json_encode($validated['mesin_peralatan']);
+        }
+        if (isset($validated['data_pemasaran'])) {
+            $validated['data_pemasaran'] = json_encode($validated['data_pemasaran']);
         }
 
         // Handle file uploads
@@ -207,19 +337,86 @@ class PemasarController extends Controller
             }
         }
 
-        Pemasar::create(array_merge($validated, $uploadedFiles));
+        try {
+            $pemasar = DB::transaction(function () use ($validated, $uploadedFiles) {
+                return Pemasar::create(array_merge(
+                    $validated,
+                    $uploadedFiles,
+                    [
+                        'status' => 'pending',
+                        'catatan_perbaikan' => null,
+                        'created_by' => auth()->user()->id_user,
+                        'updated_by' => auth()->user()->id_user,
+                    ]
+                ));
+            });
+        } catch (\Throwable $e) {
+            foreach ($uploadedFiles as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            throw $e;
+        }
+
+        // Notify all admins about new data
+        $this->notifyAdmins(
+            'create',
+            'Data Pemasar Ditambahkan',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' menambahkan data pemasar: ' . $pemasar->nama_lengkap,
+            $pemasar->id_pemasar
+        );
 
         return redirect()->route('pemasar.index')
-            ->with('success', 'Data pemasar berhasil ditambahkan.');
+            ->with('success', 'Data pemasar berhasil ditambahkan dengan status PENDING. Menunggu verifikasi admin.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Pemasar $pemasar)
+    public function show(Request $request, Pemasar $pemasar)
     {
         $pemasar->load(['kecamatan', 'desa']);
-        return view('pages.pemasar.show', compact('pemasar'));
+        
+        // Cek apakah diakses dari laporan
+        $backupData = null;
+        if ($request->query('from_report') && in_array($pemasar->status, ['pending', 'rejected'])) {
+            $backup = DB::table('pemasar_verified_backup')
+                ->where('id_pemasar', $pemasar->id_pemasar)
+                ->first();
+            
+            if ($backup) {
+                $data = json_decode($backup->data_verified, true);
+                if ($data) {
+                    $backupData = new Pemasar();
+                    
+                    $relationships = [];
+                    if (isset($data['kecamatan'])) {
+                        $relationships['kecamatan'] = $data['kecamatan'];
+                        unset($data['kecamatan']);
+                    }
+                    if (isset($data['desa'])) {
+                        $relationships['desa'] = $data['desa'];
+                        unset($data['desa']);
+                    }
+                    
+                    $backupData->forceFill($data);
+                    $backupData->exists = true;
+                    
+                    if (isset($relationships['kecamatan'])) {
+                        $kecamatan = new \App\Models\MasterKecamatan();
+                        $kecamatan->forceFill($relationships['kecamatan']);
+                        $backupData->setRelation('kecamatan', $kecamatan);
+                    }
+                    if (isset($relationships['desa'])) {
+                        $desa = new \App\Models\MasterDesa();
+                        $desa->forceFill($relationships['desa']);
+                        $backupData->setRelation('desa', $desa);
+                    }
+                }
+            }
+        }
+        
+        return view('pages.pemasar.show', compact('pemasar', 'backupData'));
     }
 
     /**
@@ -239,7 +436,17 @@ class PemasarController extends Controller
     public function update(Request $request, Pemasar $pemasar)
     {
         $validated = $request->validate([
-            'nik_pemasar' => 'required|string|size:16|unique:pemasars,nik_pemasar,' . $pemasar->id_pemasar . ',id_pemasar',
+            'tahun_pendataan' => 'required|integer|min:2026|max:' . (date('Y') + 5),
+            'nik_pemasar' => [
+                'required',
+                'string',
+                'size:16',
+                Rule::unique('pemasars', 'nik_pemasar')
+                    ->where(function ($query) use ($request) {
+                        return $query->where('tahun_pendataan', $request->tahun_pendataan);
+                    })
+                    ->ignore($pemasar->id_pemasar, 'id_pemasar')
+            ],
             'nama_lengkap' => 'required|string|max:255',
             'jenis_kelamin' => 'nullable|string',
             'tempat_lahir' => 'nullable|string|max:255',
@@ -298,6 +505,34 @@ class PemasarController extends Controller
             'bulan_produksi' => 'nullable|array',
             'jumlah_hari_produksi' => 'nullable|integer',
             'distribusi_pemasaran' => 'nullable|string',
+            // Production Fields
+            'biaya_produksi' => 'nullable|numeric',
+            'harga_jual_produksi' => 'nullable|numeric',
+            'kapasitas_terpasang' => 'nullable|numeric',
+            'hasil_produksi_kg' => 'nullable|numeric',
+            'hasil_produksi_rp' => 'nullable|numeric',
+            // New pemasaran array structure (multiple sections)
+            'pemasaran' => 'nullable|array',
+            'pemasaran.*.kapasitas_terpasang' => 'nullable|numeric',
+            'pemasaran.*.hasil_produksi_kg' => 'nullable|numeric',
+            'pemasaran.*.hasil_produksi_rp' => 'nullable|numeric',
+            'pemasaran.*.bulan_produksi' => 'nullable|array',
+            'pemasaran.*.distribusi_pemasaran' => 'nullable|string',
+            'pemasaran.*.data_pemasaran' => 'nullable|array',
+            'pemasaran.*.data_pemasaran.*.jenis_ikan' => 'nullable|string',
+            'pemasaran.*.data_pemasaran.*.jumlah_volume' => 'nullable|numeric',
+            'pemasaran.*.data_pemasaran.*.asal_ikan' => 'nullable|string',
+            'pemasaran.*.data_pemasaran.*.harga_beli' => 'nullable|numeric',
+            'pemasaran.*.data_pemasaran.*.harga_jual' => 'nullable|numeric',
+            // Old structure (backward compatibility)
+            'data_pemasaran' => 'nullable|array',
+            'data_pemasaran.*.jenis_ikan' => 'nullable|string',
+            'data_pemasaran.*.jumlah_volume' => 'nullable|numeric',
+            'data_pemasaran.*.kebutuhan_min' => 'nullable|numeric',
+            'data_pemasaran.*.kebutuhan_max' => 'nullable|numeric',
+            'data_pemasaran.*.asal_ikan' => 'nullable|string',
+            'data_pemasaran.*.harga_beli' => 'nullable|numeric',
+            'data_pemasaran.*.harga_jual' => 'nullable|numeric',
             // Tenaga Kerja
             'wni_laki_tetap' => 'nullable|integer',
             'wni_laki_tidak_tetap' => 'nullable|integer',
@@ -336,6 +571,8 @@ class PemasarController extends Controller
             'foto_nib' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'foto_sertifikat_pirt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'foto_sertifikat_halal' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], [
+            'nik_pemasar.unique' => 'NIK ini sudah terdaftar untuk tahun pendataan yang sama. Satu NIK hanya boleh didaftarkan satu kali per tahun.',
         ]);
 
         // Map kecamatan_usaha dan desa_usaha ke id_kecamatan_usaha dan id_desa_usaha
@@ -346,6 +583,42 @@ class PemasarController extends Controller
         if ($request->has('desa_usaha')) {
             $validated['id_desa_usaha'] = $request->desa_usaha;
             unset($validated['desa_usaha']);
+        }
+
+        // Process pemasaran array structure (new format)
+        if (isset($validated['pemasaran']) && is_array($validated['pemasaran'])) {
+            $pemasaranSections = $validated['pemasaran'];
+            
+            // If only one section, use it as the main data (backward compatible)
+            if (count($pemasaranSections) === 1) {
+                $section = $pemasaranSections[0];
+                $validated['kapasitas_terpasang'] = $section['kapasitas_terpasang'] ?? null;
+                $validated['hasil_produksi_kg'] = $section['hasil_produksi_kg'] ?? null;
+                $validated['hasil_produksi_rp'] = $section['hasil_produksi_rp'] ?? null;
+                $validated['bulan_produksi'] = $section['bulan_produksi'] ?? [];
+                $validated['distribusi_pemasaran'] = $section['distribusi_pemasaran'] ?? null;
+                $validated['data_pemasaran'] = $section['data_pemasaran'] ?? [];
+            } else {
+                // Multiple sections: merge data_pemasaran arrays and use first section for other fields
+                $firstSection = $pemasaranSections[0];
+                $validated['kapasitas_terpasang'] = $firstSection['kapasitas_terpasang'] ?? null;
+                $validated['hasil_produksi_kg'] = $firstSection['hasil_produksi_kg'] ?? null;
+                $validated['hasil_produksi_rp'] = $firstSection['hasil_produksi_rp'] ?? null;
+                $validated['bulan_produksi'] = $firstSection['bulan_produksi'] ?? [];
+                $validated['distribusi_pemasaran'] = $firstSection['distribusi_pemasaran'] ?? null;
+                
+                // Merge all data_pemasaran from all sections
+                $mergedDataPemasaran = [];
+                foreach ($pemasaranSections as $section) {
+                    if (isset($section['data_pemasaran']) && is_array($section['data_pemasaran'])) {
+                        $mergedDataPemasaran = array_merge($mergedDataPemasaran, $section['data_pemasaran']);
+                    }
+                }
+                $validated['data_pemasaran'] = $mergedDataPemasaran;
+            }
+            
+            // Remove pemasaran array as we've processed it
+            unset($validated['pemasaran']);
         }
 
         // Convert array fields to JSON
@@ -361,26 +634,81 @@ class PemasarController extends Controller
         if (isset($validated['mesin_peralatan'])) {
             $validated['mesin_peralatan'] = json_encode($validated['mesin_peralatan']);
         }
+        if (isset($validated['data_pemasaran'])) {
+            $validated['data_pemasaran'] = json_encode($validated['data_pemasaran']);
+        }
 
         // Handle file uploads
         $fotoFields = ['foto_ktp', 'foto_sertifikat', 'foto_cpib_cbib', 'foto_unit_usaha', 'foto_npwp', 'foto_izin_usaha', 'foto_produk', 'foto_kusuka', 'foto_nib', 'foto_sertifikat_pirt', 'foto_sertifikat_halal'];
+        $uploadedFiles = [];
+        $oldFilesToDelete = [];
         foreach ($fotoFields as $field) {
             if ($request->hasFile($field)) {
-                // Hapus file lama jika ada
-                if ($pemasar->$field) {
-                    \Storage::delete('public/' . $pemasar->$field);
-                }
                 // Upload file baru
                 $file = $request->file($field);
                 $filename = uniqid() . '_' . time() . '_' . $field . '.' . $file->getClientOriginalExtension();
-                $validated[$field] = $file->storeAs('lampiran/pemasar', $filename, 'public');
+                $storedPath = $file->storeAs('lampiran/pemasar', $filename, 'public');
+                $validated[$field] = $storedPath;
+                $uploadedFiles[] = $storedPath;
+
+                if ($pemasar->$field) {
+                    $oldFilesToDelete[] = $pemasar->$field;
+                }
             }
         }
 
-        $pemasar->update($validated);
+        // Ensure verification and audit fields are never overwritten
+        unset($validated['created_by'], $validated['verified_by'], $validated['verified_at']);
+        
+        try {
+            DB::transaction(function () use ($pemasar, $validated) {
+                // BACKUP DATA VERIFIED SEBELUM EDIT
+                // Jika data saat ini sudah verified, backup dulu sebelum ubah ke pending
+                if ($pemasar->status === 'verified') {
+                    // Load semua relasi untuk backup
+                    $pemasar->load(['kecamatan', 'desa', 'kecamatanUsaha', 'desaUsaha']);
+
+                    // Simpan snapshot data verified ke tabel backup
+                    DB::table('pemasar_verified_backup')->updateOrInsert(
+                        ['id_pemasar' => $pemasar->id_pemasar],
+                        [
+                            'data_verified' => json_encode($pemasar->toArray()),
+                            'backed_up_at' => now()
+                        ]
+                    );
+                }
+
+                $pemasar->update(array_merge(
+                    $validated,
+                    [
+                        'status' => 'pending',
+                        'catatan_perbaikan' => null,
+                        'updated_by' => auth()->user()->id_user
+                    ]
+                ));
+            });
+        } catch (\Throwable $e) {
+            foreach ($uploadedFiles as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            throw $e;
+        }
+
+        foreach ($oldFilesToDelete as $oldPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        // Notify all admins about data update
+        $this->notifyAdmins(
+            'update',
+            'Data Pemasar Diperbarui',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' memperbarui data pemasar: ' . $pemasar->nama_lengkap,
+            $pemasar->id_pemasar
+        );
 
         return redirect()->route('pemasar.index')
-            ->with('success', 'Data pemasar berhasil diperbarui.');
+            ->with('success', 'Data pemasar berhasil diperbarui dengan status PENDING. Menunggu verifikasi admin.');
     }
 
     /**
@@ -388,9 +716,164 @@ class PemasarController extends Controller
      */
     public function destroy(Pemasar $pemasar)
     {
+        $nama = $pemasar->nama_lengkap;
+        $idPemasar = $pemasar->id_pemasar;
+        $createdBy = $pemasar->created_by;
+        $updatedBy = $pemasar->updated_by;
         $pemasar->delete();
+
+        $this->notifyAdmins(
+            'delete',
+            'Data Pemasar Dihapus',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' menghapus data pemasar: ' . $nama,
+            $idPemasar,
+            auth()->user()->id_user
+        );
+
+        $targetUserId = $updatedBy ?? $createdBy;
+        $targetStaffId = null;
+        if ($targetUserId) {
+            $targetStaffId = User::where('id_user', $targetUserId)
+                ->whereHas('role', function ($q) {
+                    $q->where('nama_role', 'staff');
+                })
+                ->value('id_user');
+        }
+
+        if ($targetStaffId && $targetStaffId != auth()->user()->id_user) {
+            $this->createNotification(
+                $targetStaffId,
+                'delete',
+                'Data Pemasar Dihapus',
+                'Pengguna ' . auth()->user()->nama_lengkap . ' menghapus data pemasar: ' . $nama,
+                $idPemasar
+            );
+        }
 
         return redirect()->route('pemasar.index')
             ->with('success', 'Data pemasar berhasil dihapus.');
+    }
+
+    /**
+     * Verify data (admin only)
+     */
+    public function verify(Pemasar $pemasar)
+    {
+        // Cek role - hanya admin yang bisa verify
+        if (auth()->user()->role->nama_role !== 'admin') {
+            return redirect()->route('pemasar.index')->with('error', 'Hanya admin yang dapat memverifikasi data.');
+        }
+
+        // Get user IDs BEFORE update to ensure they're not lost
+        $createdBy = $pemasar->created_by;
+        $updatedBy = $pemasar->updated_by;
+
+        $pemasar->update([
+            'status' => 'verified',
+            'verified_by' => auth()->user()->id_user,
+            'verified_at' => now(),
+            'catatan_perbaikan' => null,
+        ]);
+
+        // Hapus backup karena data baru sudah diverifikasi
+        DB::table('pemasar_verified_backup')
+            ->where('id_pemasar', $pemasar->id_pemasar)
+            ->delete();
+
+        $this->notifyAdmins(
+            'verified',
+            'Data Pemasar Diverifikasi',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' memverifikasi data pemasar: ' . $pemasar->nama_lengkap,
+            $pemasar->id_pemasar,
+            auth()->user()->id_user
+        );
+
+        // PERBAIKAN: Kirim notifikasi ke staff yang EDIT data (updated_by)
+        // Jika tidak ada updated_by, baru fallback ke created_by
+        $targetUserId = $updatedBy ?? $createdBy;
+        
+        $targetStaffId = null;
+        if ($targetUserId) {
+            $targetStaffId = User::where('id_user', $targetUserId)
+                ->whereHas('role', function ($q) {
+                    $q->where('nama_role', 'staff');
+                })
+                ->value('id_user');
+        }
+
+        // Kirim notifikasi hanya ke staff yang membuat/mengedit data
+        if ($targetStaffId && $targetStaffId != auth()->user()->id_user) {
+            $this->createNotification(
+                $targetStaffId,
+                'verified',
+                'Data Pemasar Diverifikasi',
+                'Pengguna ' . auth()->user()->nama_lengkap . ' memverifikasi data pemasar: ' . $pemasar->nama_lengkap,
+                $pemasar->id_pemasar
+            );
+        }
+
+        return redirect()->route('pemasar.index')->with('success', 'Data pemasar berhasil diverifikasi dan status diubah menjadi VERIFIED.');
+    }
+
+    /**
+     * Reject data (admin only)
+     */
+    public function reject(Request $request, Pemasar $pemasar)
+    {
+        // Cek role - hanya admin yang bisa reject
+        if (auth()->user()->role->nama_role !== 'admin') {
+            return redirect()->route('pemasar.index')->with('error', 'Hanya admin yang dapat menolak data.');
+        }
+
+        $validated = $request->validate([
+            'catatan_perbaikan' => 'required|string|max:2000',
+        ], [
+            'catatan_perbaikan.required' => 'Catatan perbaikan wajib diisi saat menolak data.',
+        ]);
+
+        // Get user IDs BEFORE update to ensure they're not lost
+        $createdBy = $pemasar->created_by;
+        $updatedBy = $pemasar->updated_by;
+
+        $pemasar->update([
+            'status' => 'rejected',
+            'verified_by' => auth()->user()->id_user,
+            'verified_at' => now(),
+            'catatan_perbaikan' => $validated['catatan_perbaikan'],
+        ]);
+
+        $this->notifyAdmins(
+            'rejected',
+            'Data Pemasar Ditolak',
+            'Pengguna ' . auth()->user()->nama_lengkap . ' menolak data pemasar: ' . $pemasar->nama_lengkap . '. Catatan: ' . $validated['catatan_perbaikan'],
+            $pemasar->id_pemasar,
+            auth()->user()->id_user
+        );
+
+        // PERBAIKAN: Kirim notifikasi ke staff yang EDIT data (updated_by)
+        // Jika tidak ada updated_by, baru fallback ke created_by
+        $targetUserId = $updatedBy ?? $createdBy;
+        
+        $targetStaffId = null;
+        if ($targetUserId) {
+            $targetStaffId = User::where('id_user', $targetUserId)
+                ->whereHas('role', function ($q) {
+                    $q->where('nama_role', 'staff');
+                })
+                ->value('id_user');
+        }
+
+        // Kirim notifikasi hanya ke staff yang membuat/mengedit data
+        if ($targetStaffId && $targetStaffId != auth()->user()->id_user) {
+            $this->createNotification(
+                $targetStaffId,
+                'rejected',
+                'Data Pemasar Ditolak',
+                'Pengguna ' . auth()->user()->nama_lengkap . ' menolak data pemasar: ' . $pemasar->nama_lengkap . '. Catatan: ' . $validated['catatan_perbaikan'],
+                $pemasar->id_pemasar
+            );
+        }
+
+        return redirect()->route('pemasar.index')->with('warning', 'Data pemasar ditolak dan status diubah menjadi REJECTED.');
     }
 }

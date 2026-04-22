@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class KecamatanJemberSeeder extends Seeder
 {
@@ -15,9 +16,9 @@ class KecamatanJemberSeeder extends Seeder
     public function run(): void
     {
         // Hapus data lama
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Schema::disableForeignKeyConstraints();
         DB::table('master_kecamatans')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints();
 
         $kecamatans = [
             ['id_kecamatan' => 1, 'nama_kecamatan' => 'Kencong', 'kode_kecamatan' => '3509010'],
@@ -50,7 +51,7 @@ class KecamatanJemberSeeder extends Seeder
             ['id_kecamatan' => 28, 'nama_kecamatan' => 'Kaliwates', 'kode_kecamatan' => '3509220'],
             ['id_kecamatan' => 29, 'nama_kecamatan' => 'Sumbersari', 'kode_kecamatan' => '3509230'],
             ['id_kecamatan' => 30, 'nama_kecamatan' => 'Patrang', 'kode_kecamatan' => '3509240'],
-            ['id_kecamatan' => 31, 'nama_kecamatan' => 'Mangli', 'kode_kecamatan' => '3509250'],
+            ['id_kecamatan' => 31, 'nama_kecamatan' => 'Sumberbaru', 'kode_kecamatan' => '3509250'],
         ];
 
         foreach ($kecamatans as $kecamatan) {

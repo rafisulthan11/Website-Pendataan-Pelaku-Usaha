@@ -24,7 +24,7 @@
 
     <div class="py-6">
         <div class="px-4 sm:px-6 lg:px-8">
-            <div x-data="{ step: {{ $initialStep }}, maxStep: 5 }" class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+            <div x-data="{ step: {{ $initialStep }}, maxStep: 6, products: [{}], materials: [[{}]] }" class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
                 <!-- Header -->
                 <div class="bg-blue-600 text-white px-6 py-4">
                     <h2 class="text-xl font-bold">Data Pengolah</h2>
@@ -38,7 +38,7 @@
                 <!-- Tabs -->
                 <div class="px-6 py-3">
                     <div class="flex flex-wrap gap-2">
-                        @php $tabs = ['Jenis Usaha','Profil Pemilik','Profil Usaha','Produksi','Tenaga Kerja','Lampiran']; @endphp
+                        @php $tabs = ['Jenis Usaha','Profil Pemilik','Izin Usaha','Profil Usaha','Produksi','Tenaga Kerja','Lampiran']; @endphp
                         @foreach($tabs as $i => $tab)
                             <button type="button" @click="step={{ $i }}" :class="step==={{ $i }} ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-gray-300'" class="px-4 py-2 rounded text-sm font-medium hover:bg-blue-50 transition">
                                 {{ $tab }}
@@ -55,6 +55,22 @@
                         <div x-show="step===0" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Jenis Usaha</h3>
                             <div class="space-y-6">
+                                <!-- Tahun Pendataan -->
+                                <div>
+                                    <x-input-label for="tahun_pendataan" :value="__('Tahun Pendataan*')" />
+                                    <select name="tahun_pendataan" id="tahun_pendataan" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                                        @php
+                                            $currentYear = date('Y');
+                                            $years = range(2026, $currentYear + 5);
+                                        @endphp
+                                        @foreach($years as $year)
+                                            <option value="{{ $year }}" {{ old('tahun_pendataan', $currentYear) == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Pilih tahun periode pendataan</p>
+                                    <x-input-error :messages="$errors->get('tahun_pendataan')" class="mt-2" />
+                                </div>
+
                                 <!-- Jenis Kegiatan Usaha -->
                                 <div>
                                     <x-input-label for="jenis_kegiatan_usaha" :value="__('Jenis Kegiatan Usaha')" />
@@ -133,8 +149,8 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <x-input-label for="tahun_mulai_usaha" :value="__('Tahun Mulai Usaha')" />
-                                    <x-text-input id="tahun_mulai_usaha" class="block mt-1 w-full" type="number" name="tahun_mulai_usaha" :value="old('tahun_mulai_usaha')" min="1900" max="2099" />
+                                    <x-input-label for="kontak" :value="__('No. Telepon / HP')" />
+                                    <x-text-input id="kontak" class="block mt-1 w-full" type="text" name="kontak" :value="old('kontak')" />
                                 </div>
                                 <div class="relative">
                                     <x-input-label for="jumlah_tanggungan" :value="__('Jumlah Tanggungan')" />
@@ -167,10 +183,6 @@
                                     <x-input-error :messages="$errors->get('id_desa')" class="mt-2" />
                                 </div>
                                 <div>
-                                    <x-input-label for="kontak" :value="__('No. Telepon / HP')" />
-                                    <x-text-input id="kontak" class="block mt-1 w-full" type="text" name="kontak" :value="old('kontak')" />
-                                </div>
-                                <div>
                                     <x-input-label for="email" :value="__('Email')" />
                                     <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" />
                                 </div>
@@ -181,8 +193,63 @@
                             </div>
                         </div>
 
-                        <!-- Step 2: Profil Usaha -->
+                        <!-- Step 2: Izin Usaha -->
                         <div x-show="step===2" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Izin Usaha</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div>
+                                    <x-input-label for="nib" :value="__('NIB')" />
+                                    <x-text-input id="nib" class="block mt-1 w-full" type="text" name="nib" :value="old('nib')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="npwp_usaha" :value="__('NPWP')" />
+                                    <x-text-input id="npwp_usaha" class="block mt-1 w-full" type="text" name="npwp_usaha" :value="old('npwp_usaha')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="kusuka" :value="__('KUSUKA')" />
+                                    <x-text-input id="kusuka" class="block mt-1 w-full" type="text" name="kusuka" :value="old('kusuka')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="pengesahan_menkumham" :value="__('Pengesahan MENKUMHAM')" />
+                                    <x-text-input id="pengesahan_menkumham" class="block mt-1 w-full" type="text" name="pengesahan_menkumham" :value="old('pengesahan_menkumham')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="tdu_php" :value="__('TDU-PHP')" />
+                                    <x-text-input id="tdu_php" class="block mt-1 w-full" type="text" name="tdu_php" :value="old('tdu_php')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="akta_pendirian_usaha" :value="__('AKTA Pendirian Usaha')" />
+                                    <x-text-input id="akta_pendirian_usaha" class="block mt-1 w-full" type="text" name="akta_pendirian_usaha" :value="old('akta_pendirian_usaha')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="imb" :value="__('IMB')" />
+                                    <x-text-input id="imb" class="block mt-1 w-full" type="text" name="imb" :value="old('imb')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="siup_perikanan" :value="__('SIUP Perikanan')" />
+                                    <x-text-input id="siup_perikanan" class="block mt-1 w-full" type="text" name="siup_perikanan" :value="old('siup_perikanan')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="siup_perdagangan" :value="__('SIUP Perdagangan')" />
+                                    <x-text-input id="siup_perdagangan" class="block mt-1 w-full" type="text" name="siup_perdagangan" :value="old('siup_perdagangan')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="sppl" :value="__('SPPL')" />
+                                    <x-text-input id="sppl" class="block mt-1 w-full" type="text" name="sppl" :value="old('sppl')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="ukl_upl" :value="__('UKL-UPL')" />
+                                    <x-text-input id="ukl_upl" class="block mt-1 w-full" type="text" name="ukl_upl" :value="old('ukl_upl')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="amdal" :value="__('AMDAL')" />
+                                    <x-text-input id="amdal" class="block mt-1 w-full" type="text" name="amdal" :value="old('amdal')" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Profil Usaha -->
+                        <div x-show="step===3" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Profil Usaha</h3>
                             
                             <!-- Informasi Umum Section -->
@@ -289,8 +356,8 @@
                             </div>
                         </div>
 
-                        <!-- Step 3: Produksi -->
-                        <div x-show="step===3" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6" x-data="{ products: [{}], materials: [[{}]] }">
+                        <!-- Step 4: Produksi -->
+                        <div x-show="step===4" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-6">Produksi</h3>
                             
                             <template x-for="(product, index) in products" :key="index">
@@ -308,59 +375,99 @@
                                     
                                     <div class="space-y-6">
                                         <!-- Informasi Produk -->
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <x-input-label :value="__('Nama Merk')" class="font-semibold" />
-                                                <input class="block mt-2 w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" type="text" x-bind:name="'produksi['+index+'][nama_merk]'" />
-                                            </div>
+                                        <div class="bg-white p-4 rounded-lg border border-gray-200">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <x-input-label :value="__('Nama Merk')" class="font-semibold" />
+                                                    <input class="block mt-2 w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" type="text" x-bind:name="'produksi['+index+'][nama_merk]'" />
+                                                </div>
 
-                            <div>
-                                <x-input-label :value="__('Periode')" class="font-semibold" />
-                                <select class="block mt-2 w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" x-bind:name="'produksi['+index+'][periode]'">
-                                    <option value="">Pilih Periode</option>
-                                    <option value="Tahunan">Tahunan</option>
-                                    <option value="Bulanan">Bulanan</option>
-                                    <option value="Harian">Harian</option>
-                                </select>
-                            </div>                                            <div>
-                                                <x-input-label :value="__('Kapasitas Terpasang')" class="font-semibold" />
-                                                <div class="flex items-center gap-2 mt-2">
-                                                    <input class="block w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" type="number" x-bind:name="'produksi['+index+'][kapasitas_terpasang]'" step="0.01" placeholder="0.00" />
-                                                    <span class="text-sm text-gray-600 font-medium whitespace-nowrap">Kg</span>
+                                                <div>
+                                                    <x-input-label :value="__('Periode')" class="font-semibold" />
+                                                    <select class="block mt-2 w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" x-bind:name="'produksi['+index+'][periode]'">
+                                                        <option value="">Pilih Periode</option>
+                                                        <option value="Tahunan">Tahunan</option>
+                                                        <option value="Bulanan">Bulanan</option>
+                                                        <option value="Harian">Harian</option>
+                                                    </select>
+                                                </div>
+
+                                                <div>
+                                                    <x-input-label :value="__('Kapasitas Terpasang')" class="font-semibold" />
+                                                    <div class="flex items-center gap-2 mt-2">
+                                                        <input class="block w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" type="number" x-bind:name="'produksi['+index+'][kapasitas_terpasang]'" step="0.01" placeholder="0.00" />
+                                                        <span class="text-sm text-gray-600 font-medium whitespace-nowrap">Kg</span>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <x-input-label :value="__('Jumlah Hari Produksi/bulan')" class="font-semibold" />
+                                                    <div class="flex items-center gap-2 mt-2">
+                                                        <input class="block w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" type="number" x-bind:name="'produksi['+index+'][jumlah_hari_produksi]'" min="0" placeholder="0" />
+                                                        <span class="text-sm text-gray-600 font-medium whitespace-nowrap">hari</span>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <x-input-label :value="__('Jumlah Hari Produksi/bulan')" class="font-semibold" />
-                                                <div class="flex items-center gap-2 mt-2">
-                                                    <input class="block w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" type="number" x-bind:name="'produksi['+index+'][jumlah_hari_produksi]'" min="0" placeholder="0" />
-                                                    <span class="text-sm text-gray-600 font-medium whitespace-nowrap">hari</span>
-                                                </div>
+                                            <!-- Bulan Produksi -->
+                                            <div class="mt-6">
+                                                <x-input-label :value="__('Bulan Produksi')" class="font-semibold" />
+                                            <p class="text-xs text-gray-500 mb-3">(Pilih bulan produksi)</p>
+                                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Januari" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Januari</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Februari" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Februari</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Maret" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Maret</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="April" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">April</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Mei" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Mei</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Juni" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Juni</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Juli" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Juli</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Agustus" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Agustus</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="September" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">September</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Oktober" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Oktober</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="November" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">November</span>
+                                                </label>
+                                                <label class="flex items-center p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer">
+                                                    <input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="Desember" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-2 text-sm">Desember</span>
+                                                </label>
                                             </div>
-                                        </div>
-
-                                        <!-- Bulan Produksi -->
-                                        <div class="bg-gray-50 p-4 rounded-lg">
-                                            <x-input-label :value="__('Bulan Produksi')" class="font-semibold" />
-                                            <div class="grid grid-cols-6 md:grid-cols-12 gap-3 mt-3">
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">1</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="2" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">2</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="3" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">3</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="4" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">4</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="5" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">5</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="6" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">6</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="7" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">7</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="8" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">8</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="9" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">9</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="10" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">10</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="11" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">11</span></label>
-                                                <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][bulan_produksi][]'" value="12" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">12</span></label>
                                             </div>
-                                            <p class="text-xs text-gray-500 mt-2 italic">(Centang bulan yang dipilih)</p>
                                         </div>
 
                                         <!-- Sertifikat Lahan -->
-                                        <div class="bg-gray-50 p-4 rounded-lg">
+                                        <div class="bg-white p-4 rounded-lg border border-gray-200">
                                             <x-input-label :value="__('Sertifikat Lahan')" class="font-semibold" />
                                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
                                                 <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][sertifikat_lahan][]'" value="HACCP" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">HACCP</span></label>
@@ -372,11 +479,9 @@
                                                 <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][sertifikat_lahan][]'" value="SKP" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">SKP</span></label>
                                                 <label class="flex items-center cursor-pointer"><input type="checkbox" x-bind:name="'produksi['+index+'][sertifikat_lahan][]'" value="SP" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-2 text-sm">SP</span></label>
                                             </div>
-                                        </div>
 
-                                        <!-- Informasi Biaya dan Harga -->
-                                        <div>
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <!-- Informasi Biaya dan Harga -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                                 <div>
                                                     <x-input-label :value="__('Biaya Produksi')" class="font-semibold" />
                                                     <div class="relative mt-2">
@@ -402,7 +507,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <x-input-label :value="__('Harga Produksi')" class="font-semibold" />
+                                                    <x-input-label :value="__('Hasil Produksi')" class="font-semibold" />
                                                     <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 mt-2">
                                                         <input class="block w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm" type="number" x-bind:name="'produksi['+index+'][harga_produksi_qty]'" step="0.01" placeholder="0.00" />
                                                         <span class="text-sm text-gray-600 font-medium whitespace-nowrap">Kg</span>
@@ -478,8 +583,8 @@
                             </template>
                         </div>
 
-                        <!-- Step 4: Tenaga Kerja -->
-                        <div x-show="step===4" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                        <!-- Step 5: Tenaga Kerja -->
+                        <div x-show="step===5" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Tenaga Kerja</h3>
                             
                             <!-- WNI Section -->
@@ -569,8 +674,8 @@
                             </div>
                         </div>
 
-                        <!-- Step 5: Lampiran -->
-                        <div x-show="step===5" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                        <!-- Step 6: Lampiran -->
+                        <div x-show="step===6" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Lampiran</h3>
                             <p class="text-slate-600 mb-6">Unggah dokumentasi berikut (format: JPG, PNG, PDF. Maksimal 2MB per file)</p>
                             

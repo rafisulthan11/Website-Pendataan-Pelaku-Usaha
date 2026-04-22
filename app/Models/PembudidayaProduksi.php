@@ -11,6 +11,9 @@ class PembudidayaProduksi extends Model
     
     protected $fillable = [
         'id_pembudidaya',
+        'product_index',
+        'bulan',
+        'tahun',
         'total_luas_kolam',
         'total_produksi',
         'satuan_produksi',

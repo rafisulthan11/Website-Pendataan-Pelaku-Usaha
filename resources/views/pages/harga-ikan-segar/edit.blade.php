@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-extrabold text-2xl sm:text-3xl text-slate-800 leading-tight">
-            {{ __('Edit Data Harga Ikan Segar') }}
+            {{ __('Edit Data Harga Ikan') }}
         </h2>
     </x-slot>
 
@@ -27,13 +27,13 @@
     <div class="py-6">
         <div class="px-4 sm:px-6 lg:px-8">
             <div x-data="{ step: {{ $initialStep }}, maxStep: 1 }" class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-                <form method="POST" action="{{ route('harga-ikan-segar.update', $hargaIkanSegar->id_harga) }}">
+                <form id="hargaIkanEditForm" method="POST" action="{{ route('harga-ikan-segar.update', $hargaIkanSegar->id_harga) }}">
                     @csrf
                     @method('PUT')
 
                     <!-- Header -->
                     <div class="bg-blue-600 text-white px-6 py-4">
-                        <h2 class="text-xl font-bold">Edit Data Harga Ikan Segar</h2>
+                        <h2 class="text-xl font-bold">Edit Data Harga Ikan</h2>
                     </div>
 
                     <!-- Sub Title -->
@@ -59,6 +59,18 @@
                         <div x-show="step===0" x-transition class="bg-gray-50 rounded-lg border border-gray-200 p-6">
                             <h3 class="text-lg font-semibold mb-4">Profil Pasar</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Tahun Pendataan -->
+                                <div>
+                                    <x-input-label for="tahun_pendataan" :value="__('Tahun Pendataan*')" />
+                                    <select id="tahun_pendataan" name="tahun_pendataan" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                                        @php $currentYear = date('Y'); @endphp
+                                        @foreach(range($currentYear + 5, 2026) as $year)
+                                            <option value="{{ $year }}" {{ old('tahun_pendataan', $hargaIkanSegar->tahun_pendataan ?? $currentYear) == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    <x-input-error :messages="$errors->get('tahun_pendataan')" class="mt-2" />
+                                </div>
+
                                 <!-- Tanggal Input -->
                                 <div>
                                     <x-input-label for="tanggal_input" :value="__('Tanggal Input*')" />
@@ -133,7 +145,14 @@
                                 <!-- Ukuran -->
                                 <div>
                                     <x-input-label for="ukuran" :value="__('Ukuran')" />
-                                    <x-text-input id="ukuran" class="block mt-1 w-full" type="text" name="ukuran" :value="old('ukuran', $hargaIkanSegar->ukuran)" placeholder="Contoh: Kecil, Sedang, Besar, 5-7 cm" />
+                                    <select name="ukuran" id="ukuran" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                        <option value="">Pilih Ukuran</option>
+                                        <option value="1-20 cm" {{ old('ukuran', $hargaIkanSegar->ukuran)=='1-20 cm' ? 'selected' : '' }}>1-20 cm</option>
+                                        <option value="21-40 cm" {{ old('ukuran', $hargaIkanSegar->ukuran)=='21-40 cm' ? 'selected' : '' }}>21-40 cm</option>
+                                        <option value="41-60 cm" {{ old('ukuran', $hargaIkanSegar->ukuran)=='41-60 cm' ? 'selected' : '' }}>41-60 cm</option>
+                                        <option value="61-80 cm" {{ old('ukuran', $hargaIkanSegar->ukuran)=='61-80 cm' ? 'selected' : '' }}>61-80 cm</option>
+                                        <option value="81-100 cm" {{ old('ukuran', $hargaIkanSegar->ukuran)=='81-100 cm' ? 'selected' : '' }}>81-100 cm</option>
+                                    </select>
                                     <x-input-error :messages="$errors->get('ukuran')" class="mt-2" />
                                 </div>
 
@@ -184,11 +203,11 @@
                             <button type="button" @click="if(step>0) step--" x-show="step>0" class="px-5 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-slate-700 text-sm font-medium transition">
                                 Sebelumnya
                             </button>
-                            <button type="button" @click="if(step<maxStep) step++" x-show="step<maxStep" class="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
+                            <button type="button" @click="step++" x-show="step<maxStep" class="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
                                 Berikutnya
                             </button>
-                            <button type="submit" x-show="step===maxStep" class="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
-                                {{ __('Simpan Perubahan') }}
+                            <button type="submit" x-show="step===maxStep" class="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition shadow-sm">
+                                Perbarui Data
                             </button>
                         </div>
                     </div>
@@ -199,23 +218,34 @@
 
     @push('scripts')
     <script>
-        // Triple dependent dropdown: Kecamatan -> Desa -> Pasar
-        const kecamatanSelect = document.getElementById('id_kecamatan');
-        const desaSelect = document.getElementById('id_desa');
-        const pasarSelect = document.getElementById('nama_pasar');
-        const oldKecamatanValue = '{{ old("id_kecamatan", $hargaIkanSegar->id_kecamatan) }}';
-        const oldDesaValue = '{{ old("id_desa", $hargaIkanSegar->id_desa) }}';
-        const oldPasarValue = '{{ old("nama_pasar", $hargaIkanSegar->nama_pasar) }}';
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('hargaIkanEditForm');
+            const kecamatanSelect = document.getElementById('id_kecamatan');
+            const desaSelect = document.getElementById('id_desa');
+            const pasarSelect = document.getElementById('nama_pasar');
 
-        function loadDesaOptions(idKecamatan, selectedDesaId = null) {
-            desaSelect.innerHTML = '<option value="">Loading...</option>';
-            desaSelect.disabled = true;
-            desaSelect.classList.add('bg-gray-100');
-            pasarSelect.innerHTML = '<option value="">Pilih Desa Terlebih Dahulu</option>';
-            pasarSelect.disabled = true;
-            pasarSelect.classList.add('bg-gray-100');
+            if (!form || !kecamatanSelect || !desaSelect || !pasarSelect) {
+                return;
+            }
 
-            if (idKecamatan) {
+            const oldKecamatanValue = @json(old('id_kecamatan', $hargaIkanSegar->id_kecamatan));
+            const oldDesaValue = @json(old('id_desa', $hargaIkanSegar->id_desa));
+            const oldPasarValue = @json(old('nama_pasar', $hargaIkanSegar->nama_pasar));
+
+            function loadDesaOptions(idKecamatan, selectedDesaId = null) {
+                desaSelect.innerHTML = '<option value="">Loading...</option>';
+                desaSelect.disabled = true;
+                desaSelect.classList.add('bg-gray-100');
+
+                pasarSelect.innerHTML = '<option value="">Pilih Desa Terlebih Dahulu</option>';
+                pasarSelect.disabled = true;
+                pasarSelect.classList.add('bg-gray-100');
+
+                if (!idKecamatan) {
+                    desaSelect.innerHTML = '<option value="">Pilih Kecamatan Terlebih Dahulu</option>';
+                    return;
+                }
+
                 fetch(`/api/desa-by-kecamatan/${idKecamatan}`)
                     .then(response => response.json())
                     .then(data => {
@@ -224,94 +254,81 @@
                             const option = document.createElement('option');
                             option.value = desa.id_desa;
                             option.textContent = desa.nama_desa;
-                            if (selectedDesaId && selectedDesaId == desa.id_desa) {
+                            if (selectedDesaId && String(selectedDesaId) === String(desa.id_desa)) {
                                 option.selected = true;
                             }
                             desaSelect.appendChild(option);
                         });
                         desaSelect.disabled = false;
                         desaSelect.classList.remove('bg-gray-100');
-                        
-                        // Trigger desa change if selected value exists
+
                         if (selectedDesaId) {
-                            desaSelect.dispatchEvent(new Event('change'));
+                            loadPasarOptions(selectedDesaId, oldPasarValue || null);
                         }
                     })
-                    .catch(error => {
-                        console.error('Error fetching desa:', error);
-                        desaSelect.innerHTML = '<option value="">Error loading desa</option>';
+                    .catch(() => {
+                        desaSelect.innerHTML = '<option value="">Gagal memuat desa</option>';
                     });
-            } else {
-                desaSelect.innerHTML = '<option value="">Pilih Kecamatan Terlebih Dahulu</option>';
             }
-        }
 
-        function loadPasarOptions(idDesa, selectedPasarValue = null) {
-            pasarSelect.innerHTML = '<option value="">Loading...</option>';
-            pasarSelect.disabled = true;
-            pasarSelect.classList.add('bg-gray-100');
+            function loadPasarOptions(idDesa, selectedPasarValue = null) {
+                pasarSelect.innerHTML = '<option value="">Loading...</option>';
+                pasarSelect.disabled = true;
+                pasarSelect.classList.add('bg-gray-100');
 
-            if (idDesa) {
+                if (!idDesa) {
+                    pasarSelect.innerHTML = '<option value="">Pilih Desa Terlebih Dahulu</option>';
+                    return;
+                }
+
                 fetch(`/api/pasar-by-desa/${idDesa}`)
                     .then(response => {
-                        console.log('Response status:', response.status);
-                        console.log('Response content-type:', response.headers.get('content-type'));
-                        
                         if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                            throw new Error('Failed to load pasar');
                         }
-                        
-                        const contentType = response.headers.get('content-type');
-                        if (!contentType || !contentType.includes('application/json')) {
-                            throw new Error('Response bukan JSON, kemungkinan session habis atau error server');
-                        }
-                        
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Pasar data received:', data);
                         pasarSelect.innerHTML = '<option value="">Pilih Pasar</option>';
-                        
-                        if (data.length === 0) {
+
+                        if (!Array.isArray(data) || data.length === 0) {
                             pasarSelect.innerHTML = '<option value="">Tidak ada pasar aktif</option>';
-                        } else {
-                            data.forEach(pasar => {
-                                const option = document.createElement('option');
-                                option.value = pasar.nama_pasar;
-                                option.textContent = pasar.nama_pasar;
-                                if (selectedPasarValue && selectedPasarValue == pasar.nama_pasar) {
-                                    option.selected = true;
-                                }
-                                pasarSelect.appendChild(option);
-                            });
+                            return;
                         }
-                        
+
+                        data.forEach(pasar => {
+                            const option = document.createElement('option');
+                            option.value = pasar.nama_pasar;
+                            option.textContent = pasar.nama_pasar;
+                            if (selectedPasarValue && String(selectedPasarValue) === String(pasar.nama_pasar)) {
+                                option.selected = true;
+                            }
+                            pasarSelect.appendChild(option);
+                        });
+
                         pasarSelect.disabled = false;
                         pasarSelect.classList.remove('bg-gray-100');
                     })
-                    .catch(error => {
-                        console.error('Error fetching pasar:', error);
-                        pasarSelect.innerHTML = '<option value="">Error loading pasar</option>';
+                    .catch(() => {
+                        pasarSelect.innerHTML = '<option value="">Gagal memuat pasar</option>';
                     });
+            }
+
+            kecamatanSelect.addEventListener('change', function() {
+                loadDesaOptions(this.value, null);
+            });
+
+            desaSelect.addEventListener('change', function() {
+                loadPasarOptions(this.value, null);
+            });
+
+            if (oldKecamatanValue) {
+                loadDesaOptions(oldKecamatanValue, oldDesaValue || null);
             } else {
+                desaSelect.innerHTML = '<option value="">Pilih Kecamatan Terlebih Dahulu</option>';
                 pasarSelect.innerHTML = '<option value="">Pilih Desa Terlebih Dahulu</option>';
             }
-        }
-
-        kecamatanSelect.addEventListener('change', function() {
-            const idKecamatan = this.value;
-            loadDesaOptions(idKecamatan);
         });
-
-        desaSelect.addEventListener('change', function() {
-            const idDesa = this.value;
-            loadPasarOptions(idDesa);
-        });
-
-        // Load desa on page load with current kecamatan
-        if (oldKecamatanValue) {
-            loadDesaOptions(oldKecamatanValue, oldDesaValue);
-        }
     </script>
     @endpush
 </x-app-layout>

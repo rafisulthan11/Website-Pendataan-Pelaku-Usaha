@@ -17,6 +17,13 @@ class Pengolah extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'tahun_pendataan',
+        'status',
+        'verified_by',
+        'verified_at',
+        'catatan_perbaikan',
+        'created_by',
+        'updated_by',
         'nik_pengolah',
         'nama_lengkap',
         'jenis_kelamin',
@@ -48,6 +55,19 @@ class Pengolah extends Model
         'komoditas',
         'latitude',
         'longitude',
+        // Izin Usaha
+        'nib',
+        'kusuka',
+        'pengesahan_menkumham',
+        'tdu_php',
+        'akta_pendirian_usaha',
+        'imb',
+        'siup_perikanan',
+        'siup_perdagangan',
+        'sppl',
+        'ukl_upl',
+        'amdal',
+        // Data dan Lampiran
         'produksi_data',
         'tenaga_kerja_data',
         'foto_ktp',
@@ -95,5 +115,30 @@ class Pengolah extends Model
     public function desaUsaha()
     {
         return $this->belongsTo(MasterDesa::class, 'id_desa_usaha', 'id_desa');
+    }
+
+    public function produksi()
+    {
+        return $this->hasMany(PengolahProduksi::class, 'id_pengolah', 'id_pengolah');
+    }
+
+    public function tenagaKerja()
+    {
+        return $this->hasMany(PengolahTenagaKerja::class, 'id_pengolah', 'id_pengolah');
+    }
+
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by', 'id_user');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'id_user');
     }
 }

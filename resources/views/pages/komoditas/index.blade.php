@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-extrabold text-2xl sm:text-3xl text-slate-800 leading-tight">
-            {{ __('Data Komoditas') }}
+            {{ __('Master Data') }}
         </h2>
     </x-slot>
 
@@ -23,7 +23,8 @@
                         </div>
                     
                     <!-- Show entries, Search and Add Button -->
-                    <form method="GET" action="{{ route('komoditas.index') }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <form method="GET" action="{{ route('komoditas.index') }}" class="space-y-3">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div class="flex items-center gap-2 text-sm text-slate-700">
                             <span>Show</span>
                             <select name="per_page" class="border border-gray-300 rounded px-4 py-1.5 pr-8 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white" onchange="this.form.submit()">
@@ -33,7 +34,7 @@
                             </select>
                             <span>entries</span>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                             <div class="flex items-center gap-2 text-sm text-slate-700">
                                 <label>Search:</label>
                                 <div class="relative">
@@ -46,11 +47,48 @@
                                 Tambah Komoditas
                             </a>
                         </div>
+                        </div>
                     </form>
                 </div>
 
-                <!-- Table -->
-                <div class="px-5 pb-5 overflow-x-auto">
+                <!-- Data list -->
+                <div class="px-5 pb-5">
+                    <!-- Mobile cards -->
+                    <div class="md:hidden space-y-3">
+                        @forelse ($komoditas as $k)
+                            <div class="rounded-lg border border-slate-200 p-4 bg-white shadow-sm">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-semibold text-slate-800">{{ $k->nama_komoditas ?? '-' }}</p>
+                                        <p class="text-sm text-slate-600">Tipe: {{ $k->tipe ?? '-' }}</p>
+                                        <p class="text-sm text-slate-600">Kode: {{ $k->kode ?? '-' }}</p>
+                                    </div>
+                                    <div>
+                                        @if($k->status == 'aktif')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Aktif</span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Tidak Aktif</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <a href="{{ route('komoditas.show', $k->id_komoditas) }}" class="inline-flex items-center rounded bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700">Lihat</a>
+                                    <a href="{{ route('komoditas.edit', $k->id_komoditas) }}" class="inline-flex items-center rounded bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-yellow-600">Edit</a>
+                                    <form action="{{ route('komoditas.destroy', $k->id_komoditas) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center rounded bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700">Hapus</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="rounded-lg border border-slate-200 p-4 text-center text-slate-500">Belum ada data komoditas.</div>
+                        @endforelse
+                    </div>
+
+                    <!-- Desktop table -->
+                    <div class="hidden md:block overflow-x-auto">
                     <div class="rounded-md border border-slate-300 overflow-hidden">
                         <table class="min-w-full text-base">
                             <thead class="bg-slate-100 text-slate-800">
@@ -100,6 +138,7 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
                     </div>
 
                     <!-- Pagination -->

@@ -18,6 +18,7 @@ class PetaLokasiController extends Controller
     {
         // Ambil data pembudidaya dengan koordinat lokasi usaha
         $pembudidayas = Pembudidaya::with(['ikan'])
+            ->where('status', 'verified')
             ->where(function($query) {
                 // Prioritas lokasi usaha, fallback ke lokasi rumah
                 $query->whereNotNull('latitude_usaha')
@@ -77,7 +78,8 @@ class PetaLokasiController extends Controller
             ->filter(); // Remove null values
 
         // Ambil data pengolah dengan koordinat
-        $pengolahs = Pengolah::whereNotNull('latitude')
+        $pengolahs = Pengolah::where('status', 'verified')
+            ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get()
             ->map(function ($item) {
@@ -107,7 +109,8 @@ class PetaLokasiController extends Controller
             });
 
         // Ambil data pemasar dengan koordinat
-        $pemasars = Pemasar::whereNotNull('latitude')
+        $pemasars = Pemasar::where('status', 'verified')
+            ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get()
             ->map(function ($item) {
@@ -144,10 +147,14 @@ class PetaLokasiController extends Controller
         $totalLokasi = $allData->count();
         
         // Hitung luas lahan investasi dari pemasar
-        $luasLahanInvestasi = Pemasar::sum('luas_lahan') ?? 0;
+        $luasLahanInvestasi = Pemasar::where('status', 'verified')->sum('luas_lahan') ?? 0;
         
         // Hitung luas kolam dari pembudidaya (menggunakan ukuran kolam, konversi string ke float)
-        $kolams = \DB::table('pembudidaya_kolams')->get();
+        $kolams = \DB::table('pembudidaya_kolams')
+            ->join('pembudidayas', 'pembudidaya_kolams.id_pembudidaya', '=', 'pembudidayas.id_pembudidaya')
+            ->where('pembudidayas.status', 'verified')
+            ->select('pembudidaya_kolams.ukuran')
+            ->get();
         $luasKolam = $kolams->sum(function($kolam) {
             // Coba konversi ukuran ke float, jika tidak bisa return 0
             return is_numeric($kolam->ukuran) ? (float)$kolam->ukuran : 0;

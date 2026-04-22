@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-extrabold text-2xl sm:text-3xl text-slate-800 leading-tight">
-            {{ __('Data Pemasar') }}
+            {{ auth()->user()->isAdmin() ? __('Verifikasi Data') : __('Pendataan') }}
         </h2>
     </x-slot>
 
@@ -23,39 +23,139 @@
                         </div>
                     
                     <!-- Show entries, Search and Add Button -->
-                    <form method="GET" action="{{ route('pemasar.index') }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div class="flex items-center gap-2 text-sm text-slate-700">
-                            <span>Show</span>
-                            <select name="per_page" class="border border-gray-300 rounded px-4 py-1.5 pr-8 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white" onchange="this.form.submit()">
-                                @foreach($allowedPerPage as $n)
-                                    <option value="{{ $n }}" {{ ($perPage ?? 10) == $n ? 'selected' : '' }}>{{ $n }}</option>
-                                @endforeach
-                            </select>
-                            <span>entries</span>
-                        </div>
-                        <div class="flex items-center gap-3">
+                    <form method="GET" action="{{ route('pemasar.index') }}" class="space-y-3">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <!-- Left side: Show entries -->
                             <div class="flex items-center gap-2 text-sm text-slate-700">
-                                <label>Search:</label>
-                                <div class="relative">
-                                    <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari" class="border border-gray-300 rounded-lg pl-10 pr-4 py-1.5 text-sm placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64" />
-                                    <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17.25 10.5a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z"/></svg>
-                                </div>
+                                <span class="font-medium">Show</span>
+                                <select name="per_page" class="h-9 border border-gray-300 rounded-md px-3 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm" onchange="this.form.submit()">
+                                    @foreach($allowedPerPage as $n)
+                                        <option value="{{ $n }}" {{ ($perPage ?? 10) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="font-medium">entries</span>
                             </div>
-                            <a href="{{ route('pemasar.create') }}" class="inline-flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-medium text-sm rounded-lg px-4 py-1.5 shadow whitespace-nowrap">
-                                <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                                Tambah Pemasar
-                            </a>
+
+                            <!-- Right side: Filters and Add button -->
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                <!-- Tahun Filter -->
+                                <div class="flex items-center gap-2">
+                                    <label class="text-sm font-medium text-slate-700 whitespace-nowrap">Tahun:</label>
+                                    <select name="tahun" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm hover:border-gray-400 transition min-w-[140px]" onchange="this.form.submit()">                                    @php
+                                        $currentYear = date('Y');
+                                        $years = range(2026, $currentYear + 5);
+                                    @endphp
+                                    <option value="" {{ $tahun === '' ? 'selected' : '' }}>Semua Tahun</option>                                    @foreach($years as $year)
+                                        <option value="{{ $year }}" {{ $tahun == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                    @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Status Filter -->
+                                <div class="flex items-center gap-2">
+                                    <label class="text-sm font-medium text-slate-700 whitespace-nowrap">Status:</label>
+                                    <select name="status" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm hover:border-gray-400 transition min-w-[140px]" onchange="this.form.submit()">
+                                        <option value="" {{ $status === '' ? 'selected' : '' }}>Semua Status</option>
+                                        <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="verified" {{ $status === 'verified' ? 'selected' : '' }}>Verified</option>
+                                        <option value="rejected" {{ $status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                    </select>
+                                </div>
+
+                                <!-- Search -->
+                                <div class="flex items-center gap-2">
+                                    <label class="text-sm font-medium text-slate-700 whitespace-nowrap">Search:</label>
+                                    <div class="relative">
+                                        <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari data..." class="border border-gray-300 rounded-md pl-10 pr-4 py-1.5 text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm hover:border-gray-400 transition w-full sm:w-64" />
+                                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                                    </div>
+                                </div>
+
+                                <!-- Add Button - Only for Staff -->
+                                @if(auth()->user()->role->nama_role === 'staff')
+                                    <a href="{{ route('pemasar.create') }}" class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 text-white font-semibold text-sm rounded-lg px-5 py-2 shadow-md hover:shadow-lg transition-all duration-200 whitespace-nowrap">
+                                        <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                        Tambah Data
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </form>
                 </div>
 
-                <!-- Table -->
-                <div class="px-5 pb-5 overflow-x-auto">
+                <!-- Data list -->
+                <div class="px-5 pb-5">
+                    <!-- Mobile cards -->
+                    <div class="md:hidden space-y-3">
+                        @forelse ($pemasars as $p)
+                            <div class="rounded-lg border border-slate-200 p-4 bg-white shadow-sm">
+                                <div class="flex items-start justify-between gap-3 mb-2">
+                                    <div>
+                                        <p class="font-semibold text-slate-800">{{ $p->nama_lengkap ?? '-' }}</p>
+                                        <p class="text-xs text-slate-500">Tahun: {{ $p->tahun_pendataan }}</p>
+                                    </div>
+                                    <div>
+                                        @if($p->status === 'pending')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pending</span>
+                                        @elseif($p->status === 'verified')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Verified</span>
+                                        @elseif($p->status === 'rejected')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Rejected</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="text-sm text-slate-700 space-y-1">
+                                    <p><span class="font-medium">Kelompok:</span> {{ $p->nama_kelompok ?? '-' }}</p>
+                                    <p><span class="font-medium">Lokasi:</span> {{ $p->desa->nama_desa ?? '-' }}, {{ $p->kecamatan->nama_kecamatan ?? '-' }}</p>
+                                    <p><span class="font-medium">Komoditas:</span> {{ $p->komoditas ?? '-' }}</p>
+                                    @if($p->status === 'rejected' && $p->catatan_perbaikan)
+                                        <p class="text-xs text-red-700"><span class="font-semibold">Catatan:</span> {{ $p->catatan_perbaikan }}</p>
+                                    @endif
+                                </div>
+
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <a href="{{ route('pemasar.show', $p->id_pemasar) }}" class="inline-flex items-center rounded bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700">Lihat</a>
+
+                                    @if(auth()->user()->role->nama_role === 'staff')
+                                        <a href="{{ route('pemasar.edit', $p->id_pemasar) }}" class="inline-flex items-center rounded bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-yellow-600">Edit</a>
+                                    @endif
+
+                                    @if(auth()->user()->isAdmin() && $p->status === 'pending')
+                                        <form action="{{ route('pemasar.verify', $p->id_pemasar) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="inline-flex items-center rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">Verifikasi</button>
+                                        </form>
+                                        <form action="{{ route('pemasar.reject', $p->id_pemasar) }}" method="POST" class="inline form-reject-catatan" data-entity="data pemasar ini">
+                                            @csrf
+                                            <input type="hidden" name="catatan_perbaikan" value="">
+                                            <button type="submit" class="inline-flex items-center rounded bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700">Tolak</button>
+                                        </form>
+                                    @endif
+
+                                    @if(auth()->user()->isAdminOrSuperAdmin())
+                                        <form action="{{ route('pemasar.destroy', $p->id_pemasar) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center rounded bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700">Hapus</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="rounded-lg border border-slate-200 p-4 text-center text-slate-500">Belum ada data pemasar.</div>
+                        @endforelse
+                    </div>
+
+                    <!-- Desktop table -->
+                    <div class="hidden md:block overflow-x-auto">
                     <div class="rounded-md border border-slate-300 overflow-hidden">
                         <table class="min-w-full text-base">
                             <thead class="bg-slate-100 text-slate-800">
                                 <tr>
                                     <th class="px-4 py-3 text-left font-semibold text-[15px]">Nama</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-[15px]">Tahun Pendataan</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-[15px]">Status</th>
                                     <th class="px-4 py-3 text-left font-semibold text-[15px]">Nama Kelompok</th>
                                     <th class="px-4 py-3 text-left font-semibold text-[15px]">Desa</th>
                                     <th class="px-4 py-3 text-left font-semibold text-[15px]">Kecamatan</th>
@@ -67,6 +167,21 @@
                                 @forelse ($pemasars as $p)
                                 <tr class="border-t border-slate-200">
                                     <td class="px-4 py-3 align-top text-slate-700">{{ $p->nama_lengkap ?? '-' }}</td>
+                                    <td class="px-4 py-3 align-top text-slate-700 font-semibold text-blue-600">{{ $p->tahun_pendataan }}</td>
+                                    <td class="px-4 py-3 align-top">
+                                        @if($p->status === 'pending')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pending</span>
+                                        @elseif($p->status === 'verified')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Verified</span>
+                                        @elseif($p->status === 'rejected')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">Rejected</span>
+                                            @if($p->catatan_perbaikan)
+                                                <div class="mt-1 text-xs text-red-700 max-w-xs break-words">
+                                                    <span class="font-semibold">Catatan:</span> {{ $p->catatan_perbaikan }}
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 align-top text-slate-700">{{ $p->nama_kelompok ?? '-' }}</td>
                                     <td class="px-4 py-3 align-top text-slate-700">{{ $p->desa->nama_desa ?? '-' }}</td>
                                     <td class="px-4 py-3 align-top text-slate-700">{{ $p->kecamatan->nama_kecamatan ?? '-' }}</td>
@@ -76,26 +191,49 @@
                                             <a href="{{ route('pemasar.show', $p->id_pemasar) }}" class="inline-flex items-center rounded bg-green-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-green-700">
                                                 Lihat
                                             </a>
-                                            <a href="{{ route('pemasar.edit', $p->id_pemasar) }}" class="inline-flex items-center rounded bg-yellow-500 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-yellow-600">
-                                                Edit
-                                            </a>
-                                            <form action="{{ route('pemasar.destroy', $p->id_pemasar) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="inline-flex items-center rounded bg-red-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-red-700">
-                                                    Hapus
-                                                </button>
-                                            </form>
+                                            
+                                            @if(auth()->user()->role->nama_role === 'staff')
+                                                <a href="{{ route('pemasar.edit', $p->id_pemasar) }}" class="inline-flex items-center rounded bg-yellow-500 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-yellow-600">
+                                                    Edit
+                                                </a>
+                                            @endif
+
+                                            @if(auth()->user()->isAdmin() && $p->status === 'pending')
+                                                <form action="{{ route('pemasar.verify', $p->id_pemasar) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex items-center rounded bg-blue-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-blue-700">
+                                                        Verifikasi
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('pemasar.reject', $p->id_pemasar) }}" method="POST" class="inline form-reject-catatan" data-entity="data pemasar ini">
+                                                    @csrf
+                                                    <input type="hidden" name="catatan_perbaikan" value="">
+                                                    <button type="submit" class="inline-flex items-center rounded bg-orange-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-orange-700">
+                                                        Tolak
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            @if(auth()->user()->isAdminOrSuperAdmin())
+                                                <form action="{{ route('pemasar.destroy', $p->id_pemasar) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="inline-flex items-center rounded bg-red-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-red-700">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="px-4 py-6 text-center text-slate-500">Belum ada data pemasar.</td>
+                                    <td colspan="7" class="px-4 py-6 text-center text-slate-500">Belum ada data pemasar.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
                     </div>
 
                     <!-- Pagination -->
